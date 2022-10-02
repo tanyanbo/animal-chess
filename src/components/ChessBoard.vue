@@ -5,6 +5,7 @@ import rank from "../helpers/rank"
 
 const TRAPS = [2, 4, 10, 52, 58, 60]
 const RIVER = [22, 23, 25, 26, 29, 30, 32, 33, 36, 37, 39, 40]
+// 第二个数组是为了检查中间是否有老鼠挡路
 const JUMP = {
   15: [[43], [[22, 29, 36]]],
   16: [[44], [[23, 30, 37]]],
@@ -126,6 +127,7 @@ function highlightBoxes(index: number) {
   ) {
     JUMP[index as keyof typeof JUMP][0].forEach((element, idx) => {
       let canAdd = true
+      // 检查中间是否有老鼠挡路
       JUMP[index as keyof typeof JUMP][1][idx].forEach((e) => {
         if (dict.value[e].piece) {
           canAdd = false
@@ -151,6 +153,7 @@ function highlightBoxes(index: number) {
         (!dict.value[box].piece || dict.value[box].color !== turn.value)
       )
     } else {
+      // 老鼠不能从河里直接吃象
       if (RIVER.includes(index)) {
         return dict.value[box].animal !== "elephant"
       }
@@ -213,7 +216,7 @@ function handleClickBox(index: number) {
         :class="{ [dict[index].color]: true }"
       />
       <img
-        src="../assets/cat.svg"
+        src="../assets/cat.png"
         alt="animal"
         v-show="dict[index].animal === 'cat'"
         class="animal"
@@ -234,14 +237,14 @@ function handleClickBox(index: number) {
         :class="{ [dict[index].color]: true }"
       />
       <img
-        src="../assets/cheetah.svg"
+        src="../assets/cheetah.png"
         alt="animal"
         v-show="dict[index].animal === 'cheetah'"
         class="animal"
         :class="{ [dict[index].color]: true }"
       />
       <img
-        src="../assets/tiger.svg"
+        src="../assets/tiger.png"
         alt="animal"
         v-show="dict[index].animal === 'tiger'"
         class="animal"
