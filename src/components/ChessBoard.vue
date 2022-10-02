@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { onMounted, ref } from "vue"
 import { useBoardDictionary } from "../hooks/useBoardDictionary"
 import rank from "../helpers/rank"
 
@@ -46,6 +46,14 @@ const JUMP = {
 
 const clicked = ref<number | null>(null)
 const turn = ref<"blue" | "red">("red")
+const container = ref<HTMLDivElement>()
+
+onMounted(() => {
+  if (container.value!.getBoundingClientRect().height < 100) {
+    container.value!.style.height =
+      (container.value!.getBoundingClientRect().width / 7) * 9 + "px"
+  }
+})
 
 const emit = defineEmits<{
   (e: "turn-changed", turn: "red" | "blue"): void
@@ -210,7 +218,7 @@ function handleClickBox(index: number) {
 </script>
 
 <template>
-  <div class="container">
+  <div class="container" ref="container">
     <div
       class="box"
       :class="{ highlight: highlight.includes(index) }"
@@ -307,8 +315,6 @@ function handleClickBox(index: number) {
   grid-template-rows: repeat(9, 1fr);
 
   .box {
-    // height: 50px;
-    // width: 50px;
     border: 1px solid white;
     display: flex;
     justify-content: center;
