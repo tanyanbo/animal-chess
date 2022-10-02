@@ -13,4 +13,10 @@
 
 html {
   box-sizing: border-box;
+  height: 100%;
+}
+
+body,
+#app {
+  height: 100%;
 }

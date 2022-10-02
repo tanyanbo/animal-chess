@@ -41,7 +41,7 @@ function restart() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-height: 100vh;
+  max-height: 100%;
 
   .button-row {
     display: flex;
