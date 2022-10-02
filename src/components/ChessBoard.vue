@@ -49,7 +49,10 @@ function eatPiece(index: number) {
 }
 
 function checkGameOver(index: number) {
-  if (index === 3 || index === 59) {
+  if (
+    (turn.value === "red" && index === 3) ||
+    (turn.value === "blue" && index === 59)
+  ) {
     eatPiece(index)
     emit("game-over", index === 3 ? "red" : "blue")
     return true
@@ -109,6 +112,13 @@ function highlightBoxes(index: number) {
   }
 
   highlight.value = highlight.value.filter((box) => {
+    if (
+      (box === 3 && turn.value === "blue") ||
+      (box === 59 && turn.value === "red")
+    ) {
+      return false
+    }
+
     if (dict.value[index].animal !== "mouse") {
       return (
         !RIVER.includes(box) &&
@@ -233,6 +243,12 @@ function handleClickBox(index: number) {
         alt="river"
         v-if="RIVER.includes(index)"
         class="river"
+      />
+      <img
+        src="../assets/target.svg"
+        alt="target"
+        v-if="index === 3 || index === 59"
+        class="trap"
       />
     </div>
   </div>
