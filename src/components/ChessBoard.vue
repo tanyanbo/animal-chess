@@ -147,6 +147,16 @@ function highlightBoxes(index: number) {
       return false
     }
 
+    if (dict.value[index].animal === "elephant") {
+      if (dict.value[box].animal === "mouse") {
+        return false
+      }
+      return (
+        !RIVER.includes(box) &&
+        (!dict.value[box].piece || dict.value[box].color !== turn.value)
+      )
+    }
+
     if (dict.value[index].animal !== "mouse") {
       return (
         !RIVER.includes(box) &&
