@@ -26,11 +26,11 @@ const JUMP = {
 }
 
 const clicked = ref<number | null>(null)
-const turn = ref<"black" | "red">("red")
+const turn = ref<"blue" | "red">("red")
 
 const emit = defineEmits<{
-  (e: "turn-changed", turn: "red" | "black"): void
-  (e: "game-over", winner: "red" | "black"): void
+  (e: "turn-changed", turn: "red" | "blue"): void
+  (e: "game-over", winner: "red" | "blue"): void
 }>()
 emit("turn-changed", "red")
 
@@ -51,7 +51,7 @@ function eatPiece(index: number) {
 function checkGameOver(index: number) {
   if (index === 3 || index === 59) {
     eatPiece(index)
-    emit("game-over", index === 3 ? "red" : "black")
+    emit("game-over", index === 3 ? "red" : "blue")
     return true
   }
   return false
@@ -72,7 +72,7 @@ function checkRank(index: number) {
     dict.value[clicked.value!].animal = null
     clicked.value = null
     highlight.value = []
-    turn.value = turn.value === "red" ? "black" : "red"
+    turn.value = turn.value === "red" ? "blue" : "red"
     emit("turn-changed", turn.value)
     return true
   }
@@ -147,7 +147,7 @@ function handleClickBox(index: number) {
     }
 
     eatPiece(index)
-    turn.value = turn.value === "red" ? "black" : "red"
+    turn.value = turn.value === "red" ? "blue" : "red"
     emit("turn-changed", turn.value)
     return
   }
@@ -282,12 +282,12 @@ function handleClickBox(index: number) {
         border-radius: 50%;
       }
 
-      &.black {
-        border: 2px solid black;
+      &.blue {
+        background-color: #b3e5fc;
       }
 
       &.red {
-        border: 2px solid red;
+        background-color: #f48fb1;
       }
     }
   }

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import ChessBoard from "./ChessBoard.vue"
-const turn = ref<"红" | "黑">()
-const winner = ref<"红" | "黑" | null>(null)
+const turn = ref<"红" | "蓝">()
+const winner = ref<"红" | "蓝" | null>(null)
 
 const chessBoardKey = ref<number>(0)
 
-function handleTurnChanged(t: "red" | "black") {
-  turn.value = t === "red" ? "红" : "黑"
+function handleTurnChanged(t: "red" | "blue") {
+  turn.value = t === "red" ? "红" : "蓝"
 }
 
 function restart() {
@@ -27,7 +27,7 @@ function restart() {
     </p>
     <ChessBoard
       @turn-changed="handleTurnChanged"
-      @game-over="(w) => (winner = w === 'red' ? '红' : '黑')"
+      @game-over="(w) => (winner = w === 'red' ? '红' : '蓝')"
       :key="chessBoardKey"
     />
     <p class="game-over-text" v-if="winner !== null">{{ winner }}方胜利!</p>
