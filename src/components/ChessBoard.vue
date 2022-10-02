@@ -38,72 +38,48 @@ const highlight = ref<number[]>([])
 
 const { dict } = useBoardDictionary()
 
-function handleClickBox(index: number) {
-  if (!dict.value[index].piece && !highlight.value.includes(index)) {
-    clicked.value = null
-    highlight.value = []
-    return
-  }
+function eatPiece(index: number) {
+  dict.value[index].piece = true
+  dict.value[index].color = dict.value[clicked.value!].color
+  dict.value[index].animal = dict.value[clicked.value!].animal
+  dict.value[clicked.value!].piece = false
+  dict.value[clicked.value!].animal = null
+  clicked.value = null
+  highlight.value = []
+}
 
+function checkGameOver(index: number) {
+  if (index === 3 || index === 59) {
+    eatPiece(index)
+    emit("game-over", index === 3 ? "red" : "black")
+    return true
+  }
+  return false
+}
+
+function checkRank(index: number) {
   if (
+    !TRAPS.includes(index) &&
     dict.value[index].piece &&
-    !highlight.value.includes(index) &&
-    dict.value[index].color !== turn.value
+    rank[dict.value[clicked.value!].animal!] <
+      rank[dict.value[index].animal!] &&
+    !(
+      dict.value[clicked.value!].animal === "mouse" &&
+      dict.value[index].animal === "elephant"
+    )
   ) {
-    clicked.value = null
-    highlight.value = []
-    return
-  }
-
-  if (clicked.value && highlight.value.includes(index)) {
-    if (index === 3 || index === 59) {
-      dict.value[index].piece = true
-      dict.value[index].color = dict.value[clicked.value].color
-      dict.value[index].animal = dict.value[clicked.value].animal
-      dict.value[clicked.value].piece = false
-      dict.value[clicked.value].animal = null
-      clicked.value = null
-      highlight.value = []
-      emit("game-over", index === 3 ? "red" : "black")
-      return
-    }
-
-    // 检查是否可以吃
-    if (
-      !TRAPS.includes(index) &&
-      dict.value[index].piece &&
-      rank[dict.value[clicked.value].animal!] < rank[dict.value[index].animal!]
-    ) {
-      if (
-        !(
-          dict.value[clicked.value].animal === "mouse" &&
-          dict.value[index].animal === "elephant"
-        )
-      ) {
-        dict.value[clicked.value].piece = false
-        dict.value[clicked.value].animal = null
-        clicked.value = null
-        highlight.value = []
-        turn.value = turn.value === "red" ? "black" : "red"
-        emit("turn-changed", turn.value)
-        return
-      }
-    }
-
-    dict.value[index].piece = true
-    dict.value[index].color = dict.value[clicked.value].color
-    dict.value[index].animal = dict.value[clicked.value].animal
-    dict.value[clicked.value].piece = false
-    dict.value[clicked.value].animal = null
+    dict.value[clicked.value!].piece = false
+    dict.value[clicked.value!].animal = null
     clicked.value = null
     highlight.value = []
     turn.value = turn.value === "red" ? "black" : "red"
     emit("turn-changed", turn.value)
-    return
+    return true
   }
+  return false
+}
 
-  clicked.value = index
-
+function highlightBoxes(index: number) {
   highlight.value = []
 
   if (index >= 7) {
@@ -132,11 +108,52 @@ function handleClickBox(index: number) {
     })
   }
 
-  if (dict.value[index].animal !== "mouse") {
-    highlight.value = highlight.value.filter((grid) => {
-      return !RIVER.includes(grid)
-    })
+  highlight.value = highlight.value.filter((box) => {
+    if (dict.value[index].animal !== "mouse") {
+      return (
+        !RIVER.includes(box) &&
+        (!dict.value[box].piece || dict.value[box].color !== turn.value)
+      )
+    } else {
+      return !dict.value[box].piece || dict.value[box].color !== turn.value
+    }
+  })
+}
+
+function handleClickBox(index: number) {
+  if (!dict.value[index].piece && !highlight.value.includes(index)) {
+    clicked.value = null
+    highlight.value = []
+    return
   }
+
+  if (
+    dict.value[index].piece &&
+    !highlight.value.includes(index) &&
+    dict.value[index].color !== turn.value
+  ) {
+    clicked.value = null
+    highlight.value = []
+    return
+  }
+
+  if (clicked.value && highlight.value.includes(index)) {
+    if (checkGameOver(index)) {
+      return
+    }
+
+    if (checkRank(index)) {
+      return
+    }
+
+    eatPiece(index)
+    turn.value = turn.value === "red" ? "black" : "red"
+    emit("turn-changed", turn.value)
+    return
+  }
+
+  clicked.value = index
+  highlightBoxes(index)
 }
 </script>
 
