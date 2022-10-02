@@ -4,6 +4,8 @@ import { useBoardDictionary } from "../hooks/useBoardDictionary"
 import rank from "../helpers/rank"
 
 const TRAPS = [2, 4, 10, 52, 58, 60]
+const RED_TRAPS = [52, 58, 60]
+const BLUE_TRAPS = [2, 4, 10]
 const RIVER = [22, 23, 25, 26, 29, 30, 32, 33, 36, 37, 39, 40]
 // 第二个数组是为了检查中间是否有老鼠挡路
 const JUMP = {
@@ -89,7 +91,9 @@ function checkGameOver(index: number) {
 
 function checkRank(index: number) {
   if (
-    !TRAPS.includes(index) &&
+    (!TRAPS.includes(index) ||
+      (RED_TRAPS.includes(index) && turn.value === "blue") ||
+      (BLUE_TRAPS.includes(index) && turn.value === "red")) &&
     dict.value[index].piece &&
     rank[dict.value[clicked.value!].animal!] <
       rank[dict.value[index].animal!] &&
