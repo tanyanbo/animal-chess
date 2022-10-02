@@ -1,13 +1,37 @@
 <script setup lang="ts">
 import { ref } from "vue"
 import { useBoardDictionary } from "../hooks/useBoardDictionary"
+import rank from "../helpers/rank"
 
 const TRAPS = [2, 4, 10, 52, 58, 60]
 const RIVER = [22, 23, 25, 26, 29, 30, 32, 33, 36, 37, 39, 40]
+const JUMP = {
+  15: [43],
+  16: [44],
+  18: [46],
+  19: [47],
+  21: [24],
+  24: [21, 27],
+  27: [24],
+  28: [31],
+  31: [28, 34],
+  34: [31],
+  35: [38],
+  38: [35, 41],
+  41: [38],
+  43: [15],
+  44: [16],
+  46: [18],
+  47: [19],
+}
+
 const clicked = ref<number | null>(null)
 const turn = ref<"black" | "red">("red")
 
-const emit = defineEmits<{ (e: "turn-changed", turn: "red" | "black"): void }>()
+const emit = defineEmits<{
+  (e: "turn-changed", turn: "red" | "black"): void
+  (e: "game-over", winner: "red" | "black"): void
+}>()
 emit("turn-changed", "red")
 
 const highlight = ref<number[]>([])
@@ -16,14 +40,56 @@ const { dict } = useBoardDictionary()
 
 function handleClickBox(index: number) {
   if (!dict.value[index].piece && !highlight.value.includes(index)) {
+    clicked.value = null
+    highlight.value = []
     return
   }
 
-  if (!clicked.value && dict.value[index].color !== turn.value) {
+  if (
+    dict.value[index].piece &&
+    !highlight.value.includes(index) &&
+    dict.value[index].color !== turn.value
+  ) {
+    clicked.value = null
+    highlight.value = []
     return
   }
 
-  if (clicked.value) {
+  if (clicked.value && highlight.value.includes(index)) {
+    if (index === 3 || index === 59) {
+      dict.value[index].piece = true
+      dict.value[index].color = dict.value[clicked.value].color
+      dict.value[index].animal = dict.value[clicked.value].animal
+      dict.value[clicked.value].piece = false
+      dict.value[clicked.value].animal = null
+      clicked.value = null
+      highlight.value = []
+      emit("game-over", index === 3 ? "red" : "black")
+      return
+    }
+
+    // 检查是否可以吃
+    if (
+      !TRAPS.includes(index) &&
+      dict.value[index].piece &&
+      rank[dict.value[clicked.value].animal!] < rank[dict.value[index].animal!]
+    ) {
+      if (
+        !(
+          dict.value[clicked.value].animal === "mouse" &&
+          dict.value[index].animal === "elephant"
+        )
+      ) {
+        dict.value[clicked.value].piece = false
+        dict.value[clicked.value].animal = null
+        clicked.value = null
+        highlight.value = []
+        turn.value = turn.value === "red" ? "black" : "red"
+        emit("turn-changed", turn.value)
+        return
+      }
+    }
+
     dict.value[index].piece = true
     dict.value[index].color = dict.value[clicked.value].color
     dict.value[index].animal = dict.value[clicked.value].animal
@@ -54,6 +120,16 @@ function handleClickBox(index: number) {
 
   if ((index + 1) % 7 !== 0) {
     highlight.value.push(index + 1)
+  }
+
+  if (
+    index in JUMP &&
+    (dict.value[index].animal === "lion" ||
+      dict.value[index].animal === "tiger")
+  ) {
+    JUMP[index as keyof typeof JUMP].forEach((element) => {
+      highlight.value.push(element)
+    })
   }
 
   if (dict.value[index].animal !== "mouse") {
