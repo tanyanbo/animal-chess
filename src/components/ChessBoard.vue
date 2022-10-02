@@ -137,7 +137,7 @@ function handleClickBox(index: number) {
     return
   }
 
-  if (clicked.value && highlight.value.includes(index)) {
+  if (clicked.value !== null && highlight.value.includes(index)) {
     if (checkGameOver(index)) {
       return
     }

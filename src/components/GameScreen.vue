@@ -18,6 +18,9 @@ function restart() {
 
 <template>
   <div class="outer-container">
+    <div class="button-row">
+      <button @click="restart">重新开始</button>
+    </div>
     <p class="turn">
       <span>轮到：</span>
       <span :class="{ red: turn === '红' }">{{ turn }}</span>
@@ -28,9 +31,6 @@ function restart() {
       :key="chessBoardKey"
     />
     <p class="game-over-text" v-if="winner !== null">{{ winner }}方胜利!</p>
-    <button @click="restart" v-if="winner !== null" class="restart">
-      重新开始
-    </button>
   </div>
 </template>
 
@@ -39,8 +39,21 @@ function restart() {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+
+  .button-row {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 80px;
+    width: 100%;
+    padding-right: 10px;
+    padding-top: 10px;
+
+    button {
+      font-size: 2rem;
+      padding: 6px;
+    }
+  }
 
   .turn {
     margin-bottom: 10px;
