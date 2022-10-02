@@ -125,6 +125,9 @@ function highlightBoxes(index: number) {
         (!dict.value[box].piece || dict.value[box].color !== turn.value)
       )
     } else {
+      if (RIVER.includes(index)) {
+        return dict.value[box].animal !== "elephant"
+      }
       return !dict.value[box].piece || dict.value[box].color !== turn.value
     }
   })
