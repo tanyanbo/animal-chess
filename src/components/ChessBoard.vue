@@ -6,24 +6,42 @@ import rank from "../helpers/rank"
 const TRAPS = [2, 4, 10, 52, 58, 60]
 const RIVER = [22, 23, 25, 26, 29, 30, 32, 33, 36, 37, 39, 40]
 const JUMP = {
-  15: [43],
-  16: [44],
-  18: [46],
-  19: [47],
-  21: [24],
-  24: [21, 27],
-  27: [24],
-  28: [31],
-  31: [28, 34],
-  34: [31],
-  35: [38],
-  38: [35, 41],
-  41: [38],
-  43: [15],
-  44: [16],
-  46: [18],
-  47: [19],
-}
+  15: [[43], [[22, 29, 36]]],
+  16: [[44], [[23, 30, 37]]],
+  18: [[46], [[25, 32, 39]]],
+  19: [[47], [[26, 33, 40]]],
+  21: [[24], [[22, 23]]],
+  24: [
+    [21, 27],
+    [
+      [22, 23],
+      [25, 26],
+    ],
+  ],
+  27: [[24], [[25, 26]]],
+  28: [[31], [[29, 30]]],
+  31: [
+    [28, 34],
+    [
+      [29, 30],
+      [32, 33],
+    ],
+  ],
+  34: [[31], [[32, 33]]],
+  35: [[38], [[36, 37]]],
+  38: [
+    [35, 41],
+    [
+      [36, 37],
+      [39, 40],
+    ],
+  ],
+  41: [[38], [[39, 40]]],
+  43: [[15], [[22, 29, 36]]],
+  44: [[16], [[23, 30, 37]]],
+  46: [[18], [[25, 32, 39]]],
+  47: [[19], [[26, 33, 40]]],
+} as const
 
 const clicked = ref<number | null>(null)
 const turn = ref<"blue" | "red">("red")
@@ -106,8 +124,16 @@ function highlightBoxes(index: number) {
     (dict.value[index].animal === "lion" ||
       dict.value[index].animal === "tiger")
   ) {
-    JUMP[index as keyof typeof JUMP].forEach((element) => {
-      highlight.value.push(element)
+    JUMP[index as keyof typeof JUMP][0].forEach((element, idx) => {
+      let canAdd = true
+      JUMP[index as keyof typeof JUMP][1][idx].forEach((e) => {
+        if (dict.value[e].piece) {
+          canAdd = false
+        }
+      })
+      if (canAdd) {
+        highlight.value.push(element)
+      }
     })
   }
 
