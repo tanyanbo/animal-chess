@@ -1,18 +1,9 @@
 <script setup lang="ts">
-import ChessBoard from "./components/ChessBoard.vue";
+import GameScreen from "./components/GameScreen.vue"
 </script>
 
 <template>
-  <div class="outer-container">
-    <ChessBoard />
-  </div>
+  <GameScreen />
 </template>
 
-<style scoped lang="scss">
-.outer-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-</style>
+<style scoped lang="scss"></style>
