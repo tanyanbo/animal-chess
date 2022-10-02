@@ -19,14 +19,14 @@ function restart() {
 <template>
   <div class="outer-container">
     <div class="button-row">
+      <p class="turn">
+        <span>轮到：</span>
+        <span :class="{ red: turn === '红', blue: turn === '蓝' }">{{
+          turn
+        }}</span>
+      </p>
       <button @click="restart">重新开始</button>
     </div>
-    <p class="turn">
-      <span>轮到：</span>
-      <span :class="{ red: turn === '红', blue: turn === '蓝' }">{{
-        turn
-      }}</span>
-    </p>
     <ChessBoard
       @turn-changed="handleTurnChanged"
       @game-over="(w) => (winner = w === 'red' ? '红' : '蓝')"
@@ -45,32 +45,34 @@ function restart() {
 
   .button-row {
     display: flex;
-    justify-content: flex-end;
-    margin-bottom: 80px;
+    justify-content: space-between;
+    align-items: center;
     width: 100%;
-    padding-right: 10px;
+    padding-right: 15px;
     padding-top: 10px;
+    padding-left: 15px;
+    margin-bottom: 5px;
+    max-width: 800px;
 
     button {
       font-size: 2rem;
-      padding: 6px;
-    }
-  }
-
-  .turn {
-    margin-bottom: 10px;
-
-    span {
-      font-size: 2rem;
-      font-weight: bold;
+      border: none;
+      background-color: white;
     }
 
-    .red {
-      color: red;
-    }
+    .turn {
+      span {
+        font-size: 2rem;
+        font-weight: bold;
+      }
 
-    .blue {
-      color: blue;
+      .red {
+        color: red;
+      }
+
+      .blue {
+        color: blue;
+      }
     }
   }
 
@@ -78,12 +80,6 @@ function restart() {
     font-size: 2rem;
     margin-top: 10px;
     font-weight: bold;
-  }
-
-  .restart {
-    font-size: 2rem;
-    margin-top: 10px;
-    padding: 6px;
   }
 }
 </style>

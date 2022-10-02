@@ -257,14 +257,16 @@ function handleClickBox(index: number) {
 <style scoped lang="scss">
 .container {
   display: grid;
-  width: 350px;
-  height: 450px;
+  padding: 0 15px;
+  width: 100%;
+  max-width: 800px;
+  aspect-ratio: 7 / 9;
   grid-template-columns: repeat(7, 1fr);
   grid-template-rows: repeat(9, 1fr);
 
   .box {
-    height: 50px;
-    width: 50px;
+    // height: 50px;
+    // width: 50px;
     border: 1px solid white;
     display: flex;
     justify-content: center;
