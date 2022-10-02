@@ -5,6 +5,6 @@
 启动项目
 
 ```
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
