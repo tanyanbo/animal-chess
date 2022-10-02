@@ -249,11 +249,12 @@ function handleClickBox(index: number) {
   .box {
     height: 50px;
     width: 50px;
-    border: 1px solid black;
+    border: 1px solid white;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
+    background-color: #f5f5f5;
 
     &.highlight {
       background-color: yellow;
