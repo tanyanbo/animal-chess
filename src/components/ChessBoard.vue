@@ -257,7 +257,7 @@ function handleClickBox(index: number) {
     background-color: #f5f5f5;
 
     &.highlight {
-      background-color: yellow;
+      background-color: #fff59d;
     }
 
     img {

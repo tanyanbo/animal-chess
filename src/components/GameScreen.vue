@@ -23,7 +23,9 @@ function restart() {
     </div>
     <p class="turn">
       <span>轮到：</span>
-      <span :class="{ red: turn === '红' }">{{ turn }}</span>
+      <span :class="{ red: turn === '红', blue: turn === '蓝' }">{{
+        turn
+      }}</span>
     </p>
     <ChessBoard
       @turn-changed="handleTurnChanged"
@@ -60,16 +62,22 @@ function restart() {
 
     span {
       font-size: 2rem;
+      font-weight: bold;
     }
 
     .red {
       color: red;
+    }
+
+    .blue {
+      color: blue;
     }
   }
 
   .game-over-text {
     font-size: 2rem;
     margin-top: 10px;
+    font-weight: bold;
   }
 
   .restart {
