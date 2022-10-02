@@ -170,13 +170,16 @@ function highlightBoxes(index: number) {
         !RIVER.includes(box) &&
         (!dict.value[box].piece || dict.value[box].color !== turn.value)
       )
-    } else {
-      // 老鼠不能从河里直接吃象
-      if (RIVER.includes(index)) {
-        return dict.value[box].animal !== "elephant"
-      }
-      return !dict.value[box].piece || dict.value[box].color !== turn.value
     }
+
+    // 老鼠不能从河里直接吃象
+    if (RIVER.includes(index)) {
+      return (
+        dict.value[box].animal !== "elephant" &&
+        (!dict.value[box].piece || dict.value[box].color !== turn.value)
+      )
+    }
+    return !dict.value[box].piece || dict.value[box].color !== turn.value
   })
 }
 
