@@ -7,6 +7,7 @@ import {
   BLUE_TRAPS,
   RIVER,
   getPossibleMovesFromBox,
+  generateMove,
 } from "../helpers/game"
 import rank from "../helpers/rank"
 
@@ -14,6 +15,9 @@ const clicked = ref<number | null>(null)
 const turn = ref<Color>("red")
 const container = ref<HTMLDivElement>()
 const prevMove = ref<number | null>(null)
+
+const bluePos = ref<Set<number>>(new Set([0, 6, 8, 12, 14, 16, 18, 20]))
+const redPos = ref<Set<number>>(new Set([42, 44, 46, 48, 50, 54, 56, 62]))
 
 onMounted(() => {
   if (container.value!.getBoundingClientRect().height < 100) {
@@ -26,6 +30,11 @@ const emit = defineEmits<{
   (e: "turn-changed", turn: Color): void
   (e: "game-over", winner: Color): void
 }>()
+
+const props = withDefaults(defineProps<{ singlePlayer?: boolean }>(), {
+  singlePlayer: false,
+})
+
 emit("turn-changed", "red")
 
 const highlight = ref<number[]>([])
@@ -50,6 +59,9 @@ function eatPiece(index: number) {
   dict.value[index].animal = dict.value[clicked.value!].animal
   dict.value[clicked.value!].piece = false
   dict.value[clicked.value!].animal = null
+  turn.value === "blue"
+    ? redPos.value.delete(index)
+    : bluePos.value.delete(index)
   resetToStartOfMove()
 }
 
@@ -67,6 +79,31 @@ function checkGameOver(index: number) {
     return true
   }
   return false
+}
+
+function changePositions(index: number) {
+  if (turn.value === "red") {
+    redPos.value.delete(clicked.value!)
+    redPos.value.add(index)
+  } else {
+    bluePos.value.delete(clicked.value!)
+    bluePos.value.add(index)
+  }
+}
+
+function singlePlayerMove() {
+  if (props.singlePlayer && turn.value === "blue") {
+    const move = generateMove(dict.value, bluePos.value, redPos.value, "blue")
+    setTimeout(() => {
+      aiMove(move[0], move[1])
+    }, 1000)
+  }
+}
+
+function aiMove(startPos: number, endPos: number) {
+  clicked.value = startPos
+  highlight.value = [endPos]
+  handleClickBox(endPos)
 }
 
 /**
@@ -88,9 +125,13 @@ function checkRank(index: number) {
   ) {
     dict.value[clicked.value!].piece = false
     dict.value[clicked.value!].animal = null
+    turn.value === "red"
+      ? redPos.value.delete(clicked.value!)
+      : bluePos.value.delete(clicked.value!)
     resetToStartOfMove()
     turn.value = turn.value === "red" ? "blue" : "red"
     emit("turn-changed", turn.value)
+    singlePlayerMove()
     return true
   }
   return false
@@ -126,9 +167,11 @@ function handleClickBox(index: number) {
       return
     }
 
+    changePositions(index)
     eatPiece(index)
     turn.value = turn.value === "red" ? "blue" : "red"
     emit("turn-changed", turn.value)
+    singlePlayerMove()
     return
   }
 

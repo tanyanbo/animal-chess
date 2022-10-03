@@ -31,6 +31,7 @@ function restart() {
       @turn-changed="handleTurnChanged"
       @game-over="(w) => (winner = w === 'red' ? '红' : '蓝')"
       :key="chessBoardKey"
+      :single-player="true"
     />
     <p class="game-over-text" v-if="winner !== null">{{ winner }}方胜利!</p>
   </div>

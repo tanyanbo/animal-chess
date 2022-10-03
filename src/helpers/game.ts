@@ -118,6 +118,7 @@ export function getPossibleMovesFromBox(
       return false
     }
 
+    // 大象不能吃老鼠，所以需要特殊处理
     if (dict[index].animal === "elephant") {
       if (dict[box].animal === "mouse") {
         return false
@@ -146,6 +147,85 @@ export function getPossibleMovesFromBox(
   return possibleMoves
 }
 
-function genMoves(board: Board, ownPos: Set<Animal>, opponentPos: Set<Animal>) {
-  let allMoves = []
+function generateAllPossibleMoves(
+  board: Board,
+  ownPos: Set<number>,
+  turn: Color
+) {
+  let allMoves: [number, number][] = []
+  ownPos.forEach((pos) => {
+    const moves = getPossibleMovesFromBox(pos, board, turn)
+    moves.forEach((move) => allMoves.push([pos, move]))
+  })
+
+  return allMoves
+}
+
+function generateStaticScore(
+  board: Board,
+  ownPos: Set<number>,
+  opponentPos: Set<number>,
+  turn: Color
+) {
+  let ownScore = 0
+  let opponentScore = 0
+
+  ownPos.forEach((pos) => {
+    ownScore +=
+      ANIMAL_VALUE[board[pos].animal!] + turn === "red"
+        ? RED_POSITION_VALUE[pos]
+        : BLUE_POSITION_VALUE[pos]
+  })
+
+  opponentPos.forEach((pos) => {
+    opponentScore +=
+      ANIMAL_VALUE[board[pos].animal!] + turn === "blue"
+        ? RED_POSITION_VALUE[pos]
+        : BLUE_POSITION_VALUE[pos]
+  })
+
+  return ownScore - opponentScore
+}
+
+export function generateMove(
+  board: Board,
+  ownPos: Set<number>,
+  opponentPos: Set<number>,
+  turn: Color
+) {
+  const allMoves = generateAllPossibleMoves(board, ownPos, turn)
+  let maxScore = -Number.MAX_SAFE_INTEGER
+  let finalMove: [number, number]
+
+  allMoves.forEach((move) => {
+    const originalPiece = board[move[1]].piece
+    const originalAnimal = board[move[1]].animal
+    const originalColor = board[move[1]].color
+    board[move[1]].piece = true
+    board[move[1]].animal = board[move[0]].animal
+    board[move[1]].color = board[move[0]].color
+    board[move[0]].piece = false
+    board[move[0]].animal = null
+
+    ownPos.delete(move[0])
+    ownPos.add(move[1])
+
+    const score = generateStaticScore(board, ownPos, opponentPos, turn)
+    if (score > maxScore) {
+      maxScore = score
+      finalMove = move
+    }
+
+    board[move[0]].piece = true
+    board[move[0]].animal = board[move[1]].animal
+    board[move[0]].color = board[move[1]].color
+    board[move[1]].piece = originalPiece
+    board[move[1]].animal = originalAnimal
+    board[move[1]].color = originalColor
+
+    ownPos.delete(move[1])
+    ownPos.add(move[0])
+  })
+
+  return finalMove!
 }
