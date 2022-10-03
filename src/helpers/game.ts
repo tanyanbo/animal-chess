@@ -7,25 +7,36 @@ const ANIMAL_VALUE = {
   cheetah: 40,
   wolf: 30,
   dog: 20,
-  mouse: 20,
+  mouse: 40,
   cat: 20,
 } as const
 
 const RED_POSITION_VALUE = [
-  40, 45, 200, 10000, 200, 45, 40, 35, 40, 45, 200, 45, 40, 35, 30, 35, 40, 45,
-  40, 35, 30, 25, 30, 35, 40, 35, 30, 25, 20, 25, 30, 35, 30, 25, 20, 15, 20,
-  25, 30, 25, 20, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10, 15, 20, 15, 10, 5, 0,
-  5, 10, 15, 10, 5, 0,
+  80, 150, 300, 10000, 300, 150, 80, 70, 100, 150, 300, 150, 100, 70, 60, 80,
+  100, 100, 100, 80, 60, 25, 30, 35, 40, 35, 30, 25, 20, 25, 30, 35, 30, 25, 20,
+  15, 20, 25, 30, 25, 20, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10, 15, 20, 15, 10,
+  5, 0, 5, 10, 15, 10, 5, 0,
 ] as const
 
 const BLUE_POSITION_VALUE = [
   0, 5, 10, 15, 10, 5, 0, 5, 10, 15, 20, 15, 10, 5, 10, 15, 20, 25, 20, 15, 10,
   15, 20, 25, 30, 25, 20, 15, 20, 25, 30, 35, 30, 25, 20, 25, 30, 35, 40, 35,
-  30, 25, 30, 35, 40, 45, 40, 35, 30, 35, 40, 45, 200, 45, 40, 35, 40, 45, 200,
-  10000, 200, 45, 40,
+  30, 25, 60, 80, 100, 100, 100, 80, 60, 70, 100, 150, 300, 150, 100, 70, 80,
+  150, 300, 10000, 300, 150, 80,
 ] as const
 
-const DEPTH = 4
+const ORDER = [
+  "lion",
+  "tiger",
+  "mouse",
+  "elephant",
+  "cheetah",
+  "wolf",
+  "dog",
+  "cat",
+] as const
+
+const DEPTH = 5
 
 export const TRAPS = [2, 4, 10, 52, 58, 60]
 export const RED_TRAPS = [52, 58, 60]
@@ -156,11 +167,26 @@ function generateAllPossibleMoves(
   ownPos: Set<number>,
   turn: Color
 ) {
+  const movesMap: Record<Animal, [number, number][]> = {
+    lion: [],
+    tiger: [],
+    elephant: [],
+    mouse: [],
+    cheetah: [],
+    wolf: [],
+    dog: [],
+    cat: [],
+  }
+
   let allMoves: [number, number][] = []
   ownPos.forEach((pos) => {
     const moves = getPossibleMovesFromBox(pos, board, turn)
-    moves.forEach((move) => allMoves.push([pos, move]))
+    moves.forEach((move) => movesMap[board[pos].animal!].push([pos, move]))
   })
+
+  for (const animal of ORDER) {
+    movesMap[animal].forEach((move) => allMoves.push(move))
+  }
 
   return allMoves
 }
