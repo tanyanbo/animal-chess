@@ -94,9 +94,7 @@ function changePositions(index: number) {
 function singlePlayerMove() {
   if (props.singlePlayer && turn.value === "blue") {
     const move = generateMove(dict.value, bluePos.value, redPos.value, "blue")
-    setTimeout(() => {
-      aiMove(move[0], move[1])
-    }, 1000)
+    aiMove(move[0], move[1])
   }
 }
 

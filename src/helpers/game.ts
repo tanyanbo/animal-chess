@@ -172,19 +172,78 @@ function generateStaticScore(
 
   ownPos.forEach((pos) => {
     ownScore +=
-      ANIMAL_VALUE[board[pos].animal!] + turn === "red"
-        ? RED_POSITION_VALUE[pos]
-        : BLUE_POSITION_VALUE[pos]
+      ANIMAL_VALUE[board[pos].animal!] +
+      (turn === "red" ? RED_POSITION_VALUE[pos] : BLUE_POSITION_VALUE[pos])
   })
 
   opponentPos.forEach((pos) => {
     opponentScore +=
-      ANIMAL_VALUE[board[pos].animal!] + turn === "blue"
-        ? RED_POSITION_VALUE[pos]
-        : BLUE_POSITION_VALUE[pos]
+      ANIMAL_VALUE[board[pos].animal!] +
+      (turn === "blue" ? RED_POSITION_VALUE[pos] : BLUE_POSITION_VALUE[pos])
   })
 
   return ownScore - opponentScore
+}
+
+function minimax(
+  board: Board,
+  ownPos: Set<number>,
+  opponentPos: Set<number>,
+  turn: Color,
+  isMaximising: boolean,
+  depth: number
+): [number, [number, number]] | [number, never[]] {
+  if (depth <= 0) {
+    return [generateStaticScore(board, ownPos, opponentPos, turn), []]
+  }
+  const allMoves = generateAllPossibleMoves(board, ownPos, turn)
+  let finalScore = isMaximising
+    ? -Number.MAX_SAFE_INTEGER
+    : Number.MAX_SAFE_INTEGER
+  let finalMove: [number, number]
+
+  allMoves.forEach((move) => {
+    const original = { ...board[move[1]] }
+    board[move[1]] = { ...board[move[0]] }
+    board[move[0]] = { ...original }
+
+    ownPos.delete(move[0])
+    ownPos.add(move[1])
+    let removed: number | null = null
+    if (opponentPos.has(move[1])) {
+      removed = move[1]
+      opponentPos.delete(move[1])
+    }
+
+    const [score] = minimax(
+      board,
+      opponentPos,
+      ownPos,
+      turn === "red" ? "blue" : "red",
+      !isMaximising,
+      depth - 1
+    )
+    if (depth === 2) console.log(`${move[0]}, ${move[1]}, score: ${score}`)
+
+    if (
+      (isMaximising && score > finalScore) ||
+      (!isMaximising && score < finalScore)
+    ) {
+      finalScore = score
+      finalMove = move
+    }
+
+    board[move[0]] = { ...board[move[1]] }
+    board[move[1]] = { ...original }
+
+    ownPos.delete(move[1])
+    ownPos.add(move[0])
+    if (removed) {
+      opponentPos.add(removed)
+    }
+  })
+
+  return [finalScore, finalMove!]
 }
 
 export function generateMove(
@@ -193,39 +252,6 @@ export function generateMove(
   opponentPos: Set<number>,
   turn: Color
 ) {
-  const allMoves = generateAllPossibleMoves(board, ownPos, turn)
-  let maxScore = -Number.MAX_SAFE_INTEGER
-  let finalMove: [number, number]
-
-  allMoves.forEach((move) => {
-    const originalPiece = board[move[1]].piece
-    const originalAnimal = board[move[1]].animal
-    const originalColor = board[move[1]].color
-    board[move[1]].piece = true
-    board[move[1]].animal = board[move[0]].animal
-    board[move[1]].color = board[move[0]].color
-    board[move[0]].piece = false
-    board[move[0]].animal = null
-
-    ownPos.delete(move[0])
-    ownPos.add(move[1])
-
-    const score = generateStaticScore(board, ownPos, opponentPos, turn)
-    if (score > maxScore) {
-      maxScore = score
-      finalMove = move
-    }
-
-    board[move[0]].piece = true
-    board[move[0]].animal = board[move[1]].animal
-    board[move[0]].color = board[move[1]].color
-    board[move[1]].piece = originalPiece
-    board[move[1]].animal = originalAnimal
-    board[move[1]].color = originalColor
-
-    ownPos.delete(move[1])
-    ownPos.add(move[0])
-  })
-
-  return finalMove!
+  const [_, move] = minimax(board, ownPos, opponentPos, turn, true, 2)
+  return move as [number, number]
 }
