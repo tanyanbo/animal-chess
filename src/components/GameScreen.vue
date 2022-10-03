@@ -6,7 +6,7 @@ const winner = ref<"红" | "蓝" | null>(null)
 
 const chessBoardKey = ref<number>(0)
 
-function handleTurnChanged(t: "red" | "blue") {
+function handleTurnChanged(t: Color) {
   turn.value = t === "red" ? "红" : "蓝"
 }
 

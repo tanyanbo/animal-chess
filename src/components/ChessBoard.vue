@@ -47,8 +47,9 @@ const JUMP = {
 } as const
 
 const clicked = ref<number | null>(null)
-const turn = ref<"blue" | "red">("red")
+const turn = ref<Color>("red")
 const container = ref<HTMLDivElement>()
+const prevMove = ref<number | null>(null)
 
 onMounted(() => {
   if (container.value!.getBoundingClientRect().height < 100) {
@@ -58,8 +59,8 @@ onMounted(() => {
 })
 
 const emit = defineEmits<{
-  (e: "turn-changed", turn: "red" | "blue"): void
-  (e: "game-over", winner: "red" | "blue"): void
+  (e: "turn-changed", turn: Color): void
+  (e: "game-over", winner: Color): void
 }>()
 emit("turn-changed", "red")
 
@@ -67,16 +68,31 @@ const highlight = ref<number[]>([])
 
 const { dict } = useBoardDictionary()
 
+/**
+ * 重置回合状态
+ * @param resetPrevMove 是否重置上一回合标识
+ */
+function resetToStartOfMove(resetPrevMove: boolean = true) {
+  if (resetPrevMove) {
+    prevMove.value = clicked.value
+  }
+  clicked.value = null
+  highlight.value = []
+}
+
 function eatPiece(index: number) {
   dict.value[index].piece = true
   dict.value[index].color = dict.value[clicked.value!].color
   dict.value[index].animal = dict.value[clicked.value!].animal
   dict.value[clicked.value!].piece = false
   dict.value[clicked.value!].animal = null
-  clicked.value = null
-  highlight.value = []
+  resetToStartOfMove()
 }
 
+/**
+ * 检查一方是否已经胜利
+ * @param index 当前点击的格子的编号
+ */
 function checkGameOver(index: number) {
   if (
     (turn.value === "red" && index === 3) ||
@@ -89,6 +105,10 @@ function checkGameOver(index: number) {
   return false
 }
 
+/**
+ * 检查是否“自杀”
+ * @param index 当前点击的格子的编号
+ */
 function checkRank(index: number) {
   if (
     (!TRAPS.includes(index) ||
@@ -104,8 +124,7 @@ function checkRank(index: number) {
   ) {
     dict.value[clicked.value!].piece = false
     dict.value[clicked.value!].animal = null
-    clicked.value = null
-    highlight.value = []
+    resetToStartOfMove()
     turn.value = turn.value === "red" ? "blue" : "red"
     emit("turn-changed", turn.value)
     return true
@@ -113,6 +132,10 @@ function checkRank(index: number) {
   return false
 }
 
+/**
+ * 标出当前棋子可以走到的格子
+ * @param index 当前点击的格子的编号
+ */
 function highlightBoxes(index: number) {
   highlight.value = []
 
@@ -187,20 +210,24 @@ function highlightBoxes(index: number) {
   })
 }
 
+/**
+ * 处理点击了任意一个格子（特殊情况在函数内处理）
+ * @param index 当前点击的格子的编号
+ */
 function handleClickBox(index: number) {
+  // 点击了一个没有棋子的格子
   if (!dict.value[index].piece && !highlight.value.includes(index)) {
-    clicked.value = null
-    highlight.value = []
+    resetToStartOfMove(false)
     return
   }
 
+  // 点击了对手的一个吃不到的棋子
   if (
     dict.value[index].piece &&
     !highlight.value.includes(index) &&
     dict.value[index].color !== turn.value
   ) {
-    clicked.value = null
-    highlight.value = []
+    resetToStartOfMove(false)
     return
   }
 
@@ -307,6 +334,7 @@ function handleClickBox(index: number) {
         v-if="index === 3 || index === 59"
         class="trap"
       />
+      <div class="prev" v-show="prevMove === index"></div>
     </div>
   </div>
 </template>
@@ -363,6 +391,13 @@ function handleClickBox(index: number) {
       &.red {
         background-color: #f48fb1;
       }
+    }
+
+    .prev {
+      height: 80%;
+      width: 80%;
+      border-radius: 50%;
+      border: 2px solid #fdd835;
     }
   }
 }

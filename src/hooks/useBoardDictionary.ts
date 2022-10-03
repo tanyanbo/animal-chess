@@ -6,7 +6,7 @@ export function useBoardDictionary() {
       string,
       {
         piece: boolean
-        color: "blue" | "red"
+        color: Color
         animal:
           | null
           | "mouse"
