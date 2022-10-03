@@ -1,50 +1,14 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue"
 import { useBoardDictionary } from "../hooks/useBoardDictionary"
+import {
+  TRAPS,
+  RED_TRAPS,
+  BLUE_TRAPS,
+  RIVER,
+  getPossibleMovesFromBox,
+} from "../helpers/game"
 import rank from "../helpers/rank"
-
-const TRAPS = [2, 4, 10, 52, 58, 60]
-const RED_TRAPS = [52, 58, 60]
-const BLUE_TRAPS = [2, 4, 10]
-const RIVER = [22, 23, 25, 26, 29, 30, 32, 33, 36, 37, 39, 40]
-// 第二个数组是为了检查中间是否有老鼠挡路
-const JUMP = {
-  15: [[43], [[22, 29, 36]]],
-  16: [[44], [[23, 30, 37]]],
-  18: [[46], [[25, 32, 39]]],
-  19: [[47], [[26, 33, 40]]],
-  21: [[24], [[22, 23]]],
-  24: [
-    [21, 27],
-    [
-      [22, 23],
-      [25, 26],
-    ],
-  ],
-  27: [[24], [[25, 26]]],
-  28: [[31], [[29, 30]]],
-  31: [
-    [28, 34],
-    [
-      [29, 30],
-      [32, 33],
-    ],
-  ],
-  34: [[31], [[32, 33]]],
-  35: [[38], [[36, 37]]],
-  38: [
-    [35, 41],
-    [
-      [36, 37],
-      [39, 40],
-    ],
-  ],
-  41: [[38], [[39, 40]]],
-  43: [[15], [[22, 29, 36]]],
-  44: [[16], [[23, 30, 37]]],
-  46: [[18], [[25, 32, 39]]],
-  47: [[19], [[26, 33, 40]]],
-} as const
 
 const clicked = ref<number | null>(null)
 const turn = ref<Color>("red")
@@ -133,84 +97,6 @@ function checkRank(index: number) {
 }
 
 /**
- * 标出当前棋子可以走到的格子
- * @param index 当前点击的格子的编号
- */
-function highlightBoxes(index: number) {
-  highlight.value = []
-
-  if (index >= 7) {
-    highlight.value.push(index - 7)
-  }
-
-  if (index <= 55) {
-    highlight.value.push(index + 7)
-  }
-
-  if (index % 7 !== 0) {
-    highlight.value.push(index - 1)
-  }
-
-  if ((index + 1) % 7 !== 0) {
-    highlight.value.push(index + 1)
-  }
-
-  if (
-    index in JUMP &&
-    (dict.value[index].animal === "lion" ||
-      dict.value[index].animal === "tiger")
-  ) {
-    JUMP[index as keyof typeof JUMP][0].forEach((element, idx) => {
-      let canAdd = true
-      // 检查中间是否有老鼠挡路
-      JUMP[index as keyof typeof JUMP][1][idx].forEach((e) => {
-        if (dict.value[e].piece) {
-          canAdd = false
-        }
-      })
-      if (canAdd) {
-        highlight.value.push(element)
-      }
-    })
-  }
-
-  highlight.value = highlight.value.filter((box) => {
-    if (
-      (box === 3 && turn.value === "blue") ||
-      (box === 59 && turn.value === "red")
-    ) {
-      return false
-    }
-
-    if (dict.value[index].animal === "elephant") {
-      if (dict.value[box].animal === "mouse") {
-        return false
-      }
-      return (
-        !RIVER.includes(box) &&
-        (!dict.value[box].piece || dict.value[box].color !== turn.value)
-      )
-    }
-
-    if (dict.value[index].animal !== "mouse") {
-      return (
-        !RIVER.includes(box) &&
-        (!dict.value[box].piece || dict.value[box].color !== turn.value)
-      )
-    }
-
-    // 老鼠不能从河里直接吃象
-    if (RIVER.includes(index)) {
-      return (
-        dict.value[box].animal !== "elephant" &&
-        (!dict.value[box].piece || dict.value[box].color !== turn.value)
-      )
-    }
-    return !dict.value[box].piece || dict.value[box].color !== turn.value
-  })
-}
-
-/**
  * 处理点击了任意一个格子（特殊情况在函数内处理）
  * @param index 当前点击的格子的编号
  */
@@ -247,7 +133,7 @@ function handleClickBox(index: number) {
   }
 
   clicked.value = index
-  highlightBoxes(index)
+  highlight.value = getPossibleMovesFromBox(index, dict.value, turn.value)
 }
 </script>
 

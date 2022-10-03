@@ -1,25 +1,7 @@
 import { ref } from "vue"
 
 export function useBoardDictionary() {
-  const dict = ref<
-    Record<
-      string,
-      {
-        piece: boolean
-        color: Color
-        animal:
-          | null
-          | "mouse"
-          | "cat"
-          | "dog"
-          | "wolf"
-          | "cheetah"
-          | "tiger"
-          | "lion"
-          | "elephant"
-      }
-    >
-  >({
+  const dict = ref<Board>({
     0: { piece: true, color: "blue", animal: "lion" },
     1: { piece: false, color: "blue", animal: null },
     2: { piece: false, color: "blue", animal: null },
