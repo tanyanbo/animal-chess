@@ -15,6 +15,7 @@ const clicked = ref<number | null>(null)
 const turn = ref<Color>("red")
 const container = ref<HTMLDivElement>()
 const prevMove = ref<number | null>(null)
+const disabled = ref<boolean>(false)
 
 const bluePos = ref<Set<number>>(new Set([0, 6, 8, 12, 14, 16, 18, 20]))
 const redPos = ref<Set<number>>(new Set([42, 44, 46, 48, 50, 54, 56, 62]))
@@ -93,8 +94,12 @@ function changePositions(index: number) {
 
 function singlePlayerMove() {
   if (props.singlePlayer && turn.value === "blue") {
-    const move = generateMove(dict.value, bluePos.value, redPos.value, "blue")
-    aiMove(move[0], move[1])
+    setTimeout(() => {
+      disabled.value = true
+      const move = generateMove(dict.value, bluePos.value, redPos.value, "blue")
+      disabled.value = false
+      aiMove(move[0], move[1])
+    }, 1)
   }
 }
 
@@ -140,6 +145,9 @@ function checkRank(index: number) {
  * @param index 当前点击的格子的编号
  */
 function handleClickBox(index: number) {
+  if (disabled.value) {
+    return
+  }
   // 点击了一个没有棋子的格子
   if (!dict.value[index].piece && !highlight.value.includes(index)) {
     resetToStartOfMove(false)

@@ -12,18 +12,20 @@ const ANIMAL_VALUE = {
 } as const
 
 const RED_POSITION_VALUE = [
-  40, 45, 80, 10000, 80, 45, 40, 35, 40, 45, 80, 45, 40, 35, 30, 35, 40, 45, 40,
-  35, 30, 25, 30, 35, 40, 35, 30, 25, 20, 25, 30, 35, 30, 25, 20, 15, 20, 25,
-  30, 25, 20, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10, 15, 20, 15, 10, 5, 0, 5,
-  10, 15, 10, 5, 0,
+  40, 45, 200, 10000, 200, 45, 40, 35, 40, 45, 200, 45, 40, 35, 30, 35, 40, 45,
+  40, 35, 30, 25, 30, 35, 40, 35, 30, 25, 20, 25, 30, 35, 30, 25, 20, 15, 20,
+  25, 30, 25, 20, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10, 15, 20, 15, 10, 5, 0,
+  5, 10, 15, 10, 5, 0,
 ] as const
 
 const BLUE_POSITION_VALUE = [
   0, 5, 10, 15, 10, 5, 0, 5, 10, 15, 20, 15, 10, 5, 10, 15, 20, 25, 20, 15, 10,
   15, 20, 25, 30, 25, 20, 15, 20, 25, 30, 35, 30, 25, 20, 25, 30, 35, 40, 35,
-  30, 25, 30, 35, 40, 45, 40, 35, 30, 35, 40, 45, 80, 45, 40, 35, 40, 45, 80,
-  10000, 80, 45, 40,
+  30, 25, 30, 35, 40, 45, 40, 35, 30, 35, 40, 45, 200, 45, 40, 35, 40, 45, 200,
+  10000, 200, 45, 40,
 ] as const
+
+const DEPTH = 2
 
 export const TRAPS = [2, 4, 10, 52, 58, 60]
 export const RED_TRAPS = [52, 58, 60]
@@ -184,7 +186,7 @@ function generateStaticScore(
       (turn === "blue" ? RED_POSITION_VALUE[pos] : BLUE_POSITION_VALUE[pos])
   })
 
-  return ownScore - opponentScore
+  return turn === "red" ? opponentScore - ownScore : ownScore - opponentScore
 }
 
 function minimax(
@@ -231,7 +233,7 @@ function minimax(
       ownPos.delete(move[0])
     } else {
       board[move[1]] = { ...board[move[0]] }
-      board[move[0]] = { ...original }
+      board[move[0]] = { ...board[move[0]], animal: null, piece: false }
 
       ownPos.delete(move[0])
       ownPos.add(move[1])
@@ -249,7 +251,6 @@ function minimax(
       !isMaximising,
       depth - 1
     )
-    // if (depth === 2) console.log(`${move[0]}, ${move[1]}, score: ${score}`)
 
     if (
       (isMaximising && score > finalScore) ||
@@ -283,6 +284,6 @@ export function generateMove(
   opponentPos: Set<number>,
   turn: Color
 ) {
-  const [_, move] = minimax(board, ownPos, opponentPos, turn, true, 2)
+  const [_, move] = minimax(board, ownPos, opponentPos, turn, true, DEPTH)
   return move as [number, number]
 }

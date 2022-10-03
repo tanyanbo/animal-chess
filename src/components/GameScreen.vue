@@ -14,6 +14,13 @@ function restart() {
   chessBoardKey.value += 1
   winner.value = null
 }
+
+const isSinglePlayer = ref(true)
+
+function toggleSinglePlayer(e: any) {
+  isSinglePlayer.value = e.target.value === "on" ? true : false
+  restart()
+}
 </script>
 
 <template>
@@ -25,13 +32,22 @@ function restart() {
           turn
         }}</span>
       </p>
+      <div>
+        <input
+          type="checkbox"
+          id="singlePlayer"
+          @change="toggleSinglePlayer"
+          :checked="isSinglePlayer"
+        />
+        <label for="singlePlayer">单人</label>
+      </div>
       <button @click="restart">重新开始</button>
     </div>
     <ChessBoard
       @turn-changed="handleTurnChanged"
       @game-over="(w) => (winner = w === 'red' ? '红' : '蓝')"
       :key="chessBoardKey"
-      :single-player="true"
+      :single-player="isSinglePlayer"
     />
     <p class="game-over-text" v-if="winner !== null">{{ winner }}方胜利!</p>
   </div>
@@ -59,6 +75,11 @@ function restart() {
       font-size: 2rem;
       border: none;
       background-color: white;
+    }
+
+    label {
+      font-size: 2rem;
+      padding-left: 4px;
     }
 
     .turn {
