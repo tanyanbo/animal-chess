@@ -25,7 +25,7 @@ const BLUE_POSITION_VALUE = [
   10000, 200, 45, 40,
 ] as const
 
-const DEPTH = 2
+const DEPTH = 4
 
 export const TRAPS = [2, 4, 10, 52, 58, 60]
 export const RED_TRAPS = [52, 58, 60]
@@ -195,7 +195,9 @@ function minimax(
   opponentPos: Set<number>,
   turn: Color,
   isMaximising: boolean,
-  depth: number
+  depth: number,
+  alpha: number,
+  beta: number
 ): [number, [number, number]] | [number, never[]] {
   if (depth <= 0) {
     return [generateStaticScore(board, ownPos, opponentPos, turn), []]
@@ -206,7 +208,7 @@ function minimax(
     : Number.MAX_SAFE_INTEGER
   let finalMove: [number, number]
 
-  allMoves.forEach((move) => {
+  for (const move of allMoves) {
     let original = { ...board[move[1]] }
     let removed: number | null = null
 
@@ -249,7 +251,9 @@ function minimax(
       ownPos,
       turn === "red" ? "blue" : "red",
       !isMaximising,
-      depth - 1
+      depth - 1,
+      alpha,
+      beta
     )
 
     if (
@@ -273,7 +277,16 @@ function minimax(
         opponentPos.add(removed)
       }
     }
-  })
+
+    if (isMaximising) {
+      alpha = Math.max(alpha, score)
+    } else {
+      beta = Math.min(beta, score)
+    }
+    if (beta <= alpha) {
+      break
+    }
+  }
 
   return [finalScore, finalMove!]
 }
@@ -284,6 +297,15 @@ export function generateMove(
   opponentPos: Set<number>,
   turn: Color
 ) {
-  const [_, move] = minimax(board, ownPos, opponentPos, turn, true, DEPTH)
+  const [_, move] = minimax(
+    board,
+    ownPos,
+    opponentPos,
+    turn,
+    true,
+    DEPTH,
+    -Number.MAX_SAFE_INTEGER,
+    Number.MAX_SAFE_INTEGER
+  )
   return move as [number, number]
 }
