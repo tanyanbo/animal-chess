@@ -1,3 +1,5 @@
+import rank from "./rank"
+
 const ANIMAL_VALUE = {
   lion: 100,
   tiger: 80,
@@ -203,16 +205,40 @@ function minimax(
   let finalMove: [number, number]
 
   allMoves.forEach((move) => {
-    const original = { ...board[move[1]] }
-    board[move[1]] = { ...board[move[0]] }
-    board[move[0]] = { ...original }
-
-    ownPos.delete(move[0])
-    ownPos.add(move[1])
+    let original = { ...board[move[1]] }
     let removed: number | null = null
-    if (opponentPos.has(move[1])) {
-      removed = move[1]
-      opponentPos.delete(move[1])
+
+    let canEat = true
+    // 检查是否自杀
+    if (
+      (!TRAPS.includes(move[1]) ||
+        (RED_TRAPS.includes(move[1]) && turn === "blue") ||
+        (BLUE_TRAPS.includes(move[1]) && turn === "red")) &&
+      board[move[1]].piece &&
+      rank[board[move[0]].animal!] < rank[board[move[1]].animal!] &&
+      !(
+        board[move[0]].animal === "mouse" &&
+        board[move[1]].animal === "elephant"
+      )
+    ) {
+      canEat = false
+      original = { ...board[move[0]] }
+      board[move[0]] = {
+        color: board[move[0]].color,
+        piece: false,
+        animal: null,
+      }
+      ownPos.delete(move[0])
+    } else {
+      board[move[1]] = { ...board[move[0]] }
+      board[move[0]] = { ...original }
+
+      ownPos.delete(move[0])
+      ownPos.add(move[1])
+      if (opponentPos.has(move[1])) {
+        removed = move[1]
+        opponentPos.delete(move[1])
+      }
     }
 
     const [score] = minimax(
@@ -223,7 +249,7 @@ function minimax(
       !isMaximising,
       depth - 1
     )
-    if (depth === 2) console.log(`${move[0]}, ${move[1]}, score: ${score}`)
+    // if (depth === 2) console.log(`${move[0]}, ${move[1]}, score: ${score}`)
 
     if (
       (isMaximising && score > finalScore) ||
@@ -233,13 +259,18 @@ function minimax(
       finalMove = move
     }
 
-    board[move[0]] = { ...board[move[1]] }
-    board[move[1]] = { ...original }
+    if (!canEat) {
+      board[move[0]] = { ...original }
+      ownPos.add(move[0])
+    } else {
+      board[move[0]] = { ...board[move[1]] }
+      board[move[1]] = { ...original }
 
-    ownPos.delete(move[1])
-    ownPos.add(move[0])
-    if (removed) {
-      opponentPos.add(removed)
+      ownPos.delete(move[1])
+      ownPos.add(move[0])
+      if (removed) {
+        opponentPos.add(removed)
+      }
     }
   })
 
