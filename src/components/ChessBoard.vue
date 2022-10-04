@@ -10,6 +10,26 @@ import {
   generateMove,
 } from "../helpers/game"
 import rank from "../helpers/rank"
+import { setTimeoutPromise } from "../helpers/setTimeoutPromise"
+import { useSound } from "../hooks/useSound"
+
+const emit = defineEmits<{
+  (e: "turn-changed", turn: Color): void
+  (e: "game-over", winner: Color): void
+}>()
+
+const props = withDefaults(
+  defineProps<{
+    singlePlayer?: boolean
+    volume?: number
+    shouldPlaySound?: boolean
+  }>(),
+  {
+    singlePlayer: false,
+    volume: 0.2,
+    shouldPlaySound: true,
+  }
+)
 
 const clicked = ref<number | null>(null)
 const turn = ref<Color>("red")
@@ -20,20 +40,13 @@ const disabled = ref<boolean>(false)
 const bluePos = ref<Set<number>>(new Set([0, 6, 8, 12, 14, 16, 18, 20]))
 const redPos = ref<Set<number>>(new Set([42, 44, 46, 48, 50, 54, 56, 62]))
 
+const { playSound } = useSound(props.volume, props.shouldPlaySound)
+
 onMounted(() => {
   if (container.value!.getBoundingClientRect().height < 100) {
     container.value!.style.height =
       (container.value!.getBoundingClientRect().width / 7) * 9 + "px"
   }
-})
-
-const emit = defineEmits<{
-  (e: "turn-changed", turn: Color): void
-  (e: "game-over", winner: Color): void
-}>()
-
-const props = withDefaults(defineProps<{ singlePlayer?: boolean }>(), {
-  singlePlayer: false,
 })
 
 emit("turn-changed", "red")
@@ -54,7 +67,11 @@ function resetToStartOfMove(resetPrevMove: boolean = true) {
   highlight.value = []
 }
 
-function eatPiece(index: number) {
+async function eatPiece(index: number) {
+  let hasEaten = false
+  if (dict.value[index].piece) {
+    hasEaten = true
+  }
   dict.value[index].piece = true
   dict.value[index].color = dict.value[clicked.value!].color
   dict.value[index].animal = dict.value[clicked.value!].animal
@@ -64,6 +81,9 @@ function eatPiece(index: number) {
     ? redPos.value.delete(index)
     : bluePos.value.delete(index)
   resetToStartOfMove()
+  if (hasEaten) {
+    await playSound(dict.value[index].animal!)
+  }
 }
 
 /**
@@ -113,7 +133,7 @@ function aiMove(startPos: number, endPos: number) {
  * 检查是否“自杀”
  * @param index 当前点击的格子的编号
  */
-function checkRank(index: number) {
+async function checkRank(index: number) {
   if (
     (!TRAPS.includes(index) ||
       (RED_TRAPS.includes(index) && turn.value === "blue") ||
@@ -132,6 +152,7 @@ function checkRank(index: number) {
       ? redPos.value.delete(clicked.value!)
       : bluePos.value.delete(clicked.value!)
     resetToStartOfMove()
+    await playSound(dict.value[index].animal!)
     turn.value = turn.value === "red" ? "blue" : "red"
     emit("turn-changed", turn.value)
     singlePlayerMove()
@@ -144,7 +165,7 @@ function checkRank(index: number) {
  * 处理点击了任意一个格子（特殊情况在函数内处理）
  * @param index 当前点击的格子的编号
  */
-function handleClickBox(index: number) {
+async function handleClickBox(index: number) {
   if (disabled.value) {
     return
   }
@@ -169,12 +190,12 @@ function handleClickBox(index: number) {
       return
     }
 
-    if (checkRank(index)) {
+    if (await checkRank(index)) {
       return
     }
 
     changePositions(index)
-    eatPiece(index)
+    await eatPiece(index)
     turn.value = turn.value === "red" ? "blue" : "red"
     emit("turn-changed", turn.value)
     singlePlayerMove()

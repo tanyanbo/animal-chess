@@ -17,8 +17,8 @@ function restart() {
 
 const isSinglePlayer = ref(true)
 
-function toggleSinglePlayer(e: any) {
-  isSinglePlayer.value = e.target.value === "on" ? true : false
+function toggleSinglePlayer() {
+  isSinglePlayer.value = !isSinglePlayer.value
   restart()
 }
 </script>

@@ -1,9 +1,9 @@
 import rank from "./rank"
 
 const ANIMAL_VALUE = {
-  lion: 100,
-  tiger: 80,
-  elephant: 60,
+  lion: 160,
+  tiger: 140,
+  elephant: 100,
   cheetah: 40,
   wolf: 30,
   dog: 20,
@@ -16,6 +16,20 @@ const RED_POSITION_VALUE = [
   100, 100, 100, 80, 60, 25, 30, 35, 40, 35, 30, 25, 20, 25, 30, 35, 30, 25, 20,
   15, 20, 25, 30, 25, 20, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10, 15, 20, 15, 10,
   5, 0, 5, 10, 15, 10, 5, 0,
+] as const
+
+const RED_MOUSE_POSITION_VALUE = [
+  80, 150, 300, 10000, 300, 150, 80, 70, 100, 150, 300, 150, 100, 70, 60, 80,
+  100, 100, 100, 80, 60, 25, 150, 150, 40, 150, 150, 25, 20, 150, 150, 35, 150,
+  150, 20, 15, 150, 150, 30, 150, 150, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10,
+  15, 20, 15, 10, 5, 0, 5, 10, 15, 10, 5, 0,
+] as const
+
+const BLUE_MOUSE_POSITION_VALUE = [
+  0, 5, 10, 15, 10, 5, 0, 5, 10, 15, 20, 15, 10, 5, 10, 15, 20, 25, 20, 15, 10,
+  15, 150, 150, 30, 150, 150, 15, 20, 150, 150, 35, 150, 150, 20, 25, 150, 150,
+  40, 150, 150, 25, 60, 80, 100, 100, 100, 80, 60, 70, 100, 150, 300, 150, 100,
+  70, 80, 150, 300, 10000, 300, 150, 80,
 ] as const
 
 const BLUE_POSITION_VALUE = [
@@ -203,13 +217,25 @@ function generateStaticScore(
   ownPos.forEach((pos) => {
     ownScore +=
       ANIMAL_VALUE[board[pos].animal!] +
-      (turn === "red" ? RED_POSITION_VALUE[pos] : BLUE_POSITION_VALUE[pos])
+      (turn === "red"
+        ? board[pos].animal === "mouse"
+          ? RED_MOUSE_POSITION_VALUE[pos]
+          : RED_POSITION_VALUE[pos]
+        : board[pos].animal === "mouse"
+        ? BLUE_MOUSE_POSITION_VALUE[pos]
+        : BLUE_POSITION_VALUE[pos])
   })
 
   opponentPos.forEach((pos) => {
     opponentScore +=
       ANIMAL_VALUE[board[pos].animal!] +
-      (turn === "blue" ? RED_POSITION_VALUE[pos] : BLUE_POSITION_VALUE[pos])
+      (turn === "blue"
+        ? board[pos].animal === "mouse"
+          ? RED_MOUSE_POSITION_VALUE[pos]
+          : RED_POSITION_VALUE[pos]
+        : board[pos].animal === "mouse"
+        ? BLUE_MOUSE_POSITION_VALUE[pos]
+        : BLUE_POSITION_VALUE[pos])
   })
 
   return turn === "red" ? opponentScore - ownScore : ownScore - opponentScore
