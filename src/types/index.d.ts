@@ -1,4 +1,4 @@
-type Color = "red" | "blue"
+type Color = 0 | 1;
 
 type Animal =
   | "mouse"
@@ -8,13 +8,13 @@ type Animal =
   | "cheetah"
   | "tiger"
   | "lion"
-  | "elephant"
+  | "elephant";
 
 type Board = Record<
   string,
   {
-    piece: boolean
-    color: Color
-    animal: Animal | null
+    piece: boolean;
+    color: Color;
+    animal: Animal | null;
   }
->
+>;

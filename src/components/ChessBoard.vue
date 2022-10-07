@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue"
-import { useBoardDictionary } from "../hooks/useBoardDictionary"
+import { onMounted, ref } from "vue";
+import { useBoardDictionary } from "../hooks/useBoardDictionary";
 import {
   TRAPS,
   RED_TRAPS,
@@ -8,52 +8,62 @@ import {
   RIVER,
   getPossibleMovesFromBox,
   generateMove,
-} from "../helpers/game"
-import rank from "../helpers/rank"
-import { setTimeoutPromise } from "../helpers/setTimeoutPromise"
-import { useSound } from "../hooks/useSound"
+} from "../helpers/game";
+import { useSound } from "../hooks/useSound";
+import {
+  ELEPHANT,
+  MOUSE,
+  CAT,
+  DOG,
+  WOLF,
+  CHEETAH,
+  TIGER,
+  LION,
+  WHICH_ANIMAL,
+  WHOSE_TURN,
+} from "../constants/values";
 
 const emit = defineEmits<{
-  (e: "turn-changed", turn: Color): void
-  (e: "game-over", winner: Color): void
-}>()
+  (e: "turn-changed", turn: Color): void;
+  (e: "game-over", winner: Color): void;
+}>();
 
 const props = withDefaults(
   defineProps<{
-    singlePlayer?: boolean
-    volume?: number
-    shouldPlaySound?: boolean
+    singlePlayer?: boolean;
+    volume?: number;
+    shouldPlaySound?: boolean;
   }>(),
   {
     singlePlayer: false,
     volume: 0.2,
     shouldPlaySound: true,
   }
-)
+);
 
-const clicked = ref<number | null>(null)
-const turn = ref<Color>("red")
-const container = ref<HTMLDivElement>()
-const prevMove = ref<number | null>(null)
-const disabled = ref<boolean>(false)
+const clicked = ref<number | null>(null);
+const turn = ref<Color>(1);
+const container = ref<HTMLDivElement>();
+const prevMove = ref<number | null>(null);
+const disabled = ref<boolean>(false);
 
-const bluePos = ref<Set<number>>(new Set([0, 6, 8, 12, 14, 16, 18, 20]))
-const redPos = ref<Set<number>>(new Set([42, 44, 46, 48, 50, 54, 56, 62]))
+const bluePos = ref<Set<number>>(new Set([0, 6, 8, 12, 14, 16, 18, 20]));
+const redPos = ref<Set<number>>(new Set([42, 44, 46, 48, 50, 54, 56, 62]));
 
-const { playSound } = useSound(props.volume, props.shouldPlaySound)
+const { playSound } = useSound(props.volume, props.shouldPlaySound);
 
 onMounted(() => {
   if (container.value!.getBoundingClientRect().height < 100) {
     container.value!.style.height =
-      (container.value!.getBoundingClientRect().width / 7) * 9 + "px"
+      (container.value!.getBoundingClientRect().width / 7) * 9 + "px";
   }
-})
+});
 
-emit("turn-changed", "red")
+emit("turn-changed", 1);
 
-const highlight = ref<number[]>([])
+const highlight = ref<number[]>([]);
 
-const { dict } = useBoardDictionary()
+const { dict } = useBoardDictionary();
 
 /**
  * 重置回合状态
@@ -61,28 +71,23 @@ const { dict } = useBoardDictionary()
  */
 function resetToStartOfMove(resetPrevMove: boolean = true) {
   if (resetPrevMove) {
-    prevMove.value = clicked.value
+    prevMove.value = clicked.value;
   }
-  clicked.value = null
-  highlight.value = []
+  clicked.value = null;
+  highlight.value = [];
 }
 
 async function eatPiece(index: number) {
-  let hasEaten = false
-  if (dict.value[index].piece) {
-    hasEaten = true
+  let hasEaten = false;
+  if (dict.value[index] & WHOSE_TURN) {
+    hasEaten = true;
   }
-  dict.value[index].piece = true
-  dict.value[index].color = dict.value[clicked.value!].color
-  dict.value[index].animal = dict.value[clicked.value!].animal
-  dict.value[clicked.value!].piece = false
-  dict.value[clicked.value!].animal = null
-  turn.value === "blue"
-    ? redPos.value.delete(index)
-    : bluePos.value.delete(index)
-  resetToStartOfMove()
+  dict.value[index] = dict.value[clicked.value!];
+  dict.value[clicked.value!] = 0;
+  turn.value === 0 ? redPos.value.delete(index) : bluePos.value.delete(index);
+  resetToStartOfMove();
   if (hasEaten) {
-    await playSound(dict.value[index].animal!)
+    await playSound(dict.value[index] & WHICH_ANIMAL);
   }
 }
 
@@ -91,42 +96,44 @@ async function eatPiece(index: number) {
  * @param index 当前点击的格子的编号
  */
 function checkGameOver(index: number) {
-  if (
-    (turn.value === "red" && index === 3) ||
-    (turn.value === "blue" && index === 59)
-  ) {
-    eatPiece(index)
-    emit("game-over", index === 3 ? "red" : "blue")
-    return true
+  if ((turn.value === 1 && index === 3) || (turn.value === 0 && index === 59)) {
+    eatPiece(index);
+    emit("game-over", index === 3 ? 1 : 0);
+    return true;
   }
-  return false
+  return false;
 }
 
 function changePositions(index: number) {
-  if (turn.value === "red") {
-    redPos.value.delete(clicked.value!)
-    redPos.value.add(index)
+  if (turn.value === 1) {
+    redPos.value.delete(clicked.value!);
+    redPos.value.add(index);
   } else {
-    bluePos.value.delete(clicked.value!)
-    bluePos.value.add(index)
+    bluePos.value.delete(clicked.value!);
+    bluePos.value.add(index);
   }
 }
 
 function singlePlayerMove() {
-  if (props.singlePlayer && turn.value === "blue") {
+  if (props.singlePlayer && turn.value === 0) {
     setTimeout(() => {
-      disabled.value = true
-      const move = generateMove(dict.value, bluePos.value, redPos.value, "blue")
-      disabled.value = false
-      aiMove(move[0], move[1])
-    }, 1)
+      disabled.value = true;
+      const move = generateMove(
+        dict.value,
+        bluePos.value,
+        redPos.value,
+        "blue"
+      );
+      disabled.value = false;
+      aiMove(move[0], move[1]);
+    }, 1);
   }
 }
 
 function aiMove(startPos: number, endPos: number) {
-  clicked.value = startPos
-  highlight.value = [endPos]
-  handleClickBox(endPos)
+  clicked.value = startPos;
+  highlight.value = [endPos];
+  handleClickBox(endPos);
 }
 
 /**
@@ -136,29 +143,28 @@ function aiMove(startPos: number, endPos: number) {
 async function checkRank(index: number) {
   if (
     (!TRAPS.includes(index) ||
-      (RED_TRAPS.includes(index) && turn.value === "blue") ||
-      (BLUE_TRAPS.includes(index) && turn.value === "red")) &&
-    dict.value[index].piece &&
-    rank[dict.value[clicked.value!].animal!] <
-      rank[dict.value[index].animal!] &&
+      (RED_TRAPS.includes(index) && turn.value === 0) ||
+      (BLUE_TRAPS.includes(index) && turn.value === 1)) &&
+    dict.value[index] &&
+    (dict.value[clicked.value!] & WHICH_ANIMAL) <
+      (dict.value[index] & WHICH_ANIMAL) &&
     !(
-      dict.value[clicked.value!].animal === "mouse" &&
-      dict.value[index].animal === "elephant"
+      (dict.value[clicked.value!] & WHICH_ANIMAL) === MOUSE &&
+      (dict.value[index] & WHICH_ANIMAL) === ELEPHANT
     )
   ) {
-    dict.value[clicked.value!].piece = false
-    dict.value[clicked.value!].animal = null
-    turn.value === "red"
+    dict.value[clicked.value!] = 0;
+    turn.value === 1
       ? redPos.value.delete(clicked.value!)
-      : bluePos.value.delete(clicked.value!)
-    resetToStartOfMove()
-    await playSound(dict.value[index].animal!)
-    turn.value = turn.value === "red" ? "blue" : "red"
-    emit("turn-changed", turn.value)
-    singlePlayerMove()
-    return true
+      : bluePos.value.delete(clicked.value!);
+    resetToStartOfMove();
+    await playSound(dict.value[index] & WHICH_ANIMAL);
+    turn.value = turn.value === 1 ? 0 : 1;
+    emit("turn-changed", turn.value);
+    singlePlayerMove();
+    return true;
   }
-  return false
+  return false;
 }
 
 /**
@@ -167,43 +173,43 @@ async function checkRank(index: number) {
  */
 async function handleClickBox(index: number) {
   if (disabled.value) {
-    return
+    return;
   }
   // 点击了一个没有棋子的格子
-  if (!dict.value[index].piece && !highlight.value.includes(index)) {
-    resetToStartOfMove(false)
-    return
+  if (!dict.value[index] && !highlight.value.includes(index)) {
+    resetToStartOfMove(false);
+    return;
   }
 
   // 点击了对手的一个吃不到的棋子
   if (
-    dict.value[index].piece &&
+    dict.value[index] &&
     !highlight.value.includes(index) &&
-    dict.value[index].color !== turn.value
+    (dict.value[index] & WHOSE_TURN) !== turn.value
   ) {
-    resetToStartOfMove(false)
-    return
+    resetToStartOfMove(false);
+    return;
   }
 
   if (clicked.value !== null && highlight.value.includes(index)) {
     if (checkGameOver(index)) {
-      return
+      return;
     }
 
     if (await checkRank(index)) {
-      return
+      return;
     }
 
-    changePositions(index)
-    await eatPiece(index)
-    turn.value = turn.value === "red" ? "blue" : "red"
-    emit("turn-changed", turn.value)
-    singlePlayerMove()
-    return
+    changePositions(index);
+    await eatPiece(index);
+    turn.value = turn.value === 1 ? 0 : 1;
+    emit("turn-changed", turn.value);
+    singlePlayerMove();
+    return;
   }
 
-  clicked.value = index
-  highlight.value = getPossibleMovesFromBox(index, dict.value, turn.value)
+  clicked.value = index;
+  highlight.value = getPossibleMovesFromBox(index, dict.value, turn.value);
 }
 </script>
 
@@ -219,58 +225,82 @@ async function handleClickBox(index: number) {
       <img
         src="../assets/mouse.svg"
         alt="animal"
-        v-show="dict[index].animal === 'mouse'"
+        v-show="(dict[index] & WHICH_ANIMAL) === MOUSE"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/cat.png"
         alt="animal"
-        v-show="dict[index].animal === 'cat'"
+        v-show="(dict[index] & WHICH_ANIMAL) === CAT"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/dog.svg"
         alt="animal"
-        v-show="dict[index].animal === 'dog'"
+        v-show="(dict[index] & WHICH_ANIMAL) === DOG"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/wolf.svg"
         alt="animal"
-        v-show="dict[index].animal === 'wolf'"
+        v-show="(dict[index] & WHICH_ANIMAL) === WOLF"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/cheetah.png"
         alt="animal"
-        v-show="dict[index].animal === 'cheetah'"
+        v-show="(dict[index] & WHICH_ANIMAL) === CHEETAH"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/tiger.png"
         alt="animal"
-        v-show="dict[index].animal === 'tiger'"
+        v-show="(dict[index] & WHICH_ANIMAL) === TIGER"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/lion.svg"
         alt="animal"
-        v-show="dict[index].animal === 'lion'"
+        v-show="(dict[index] & WHICH_ANIMAL) === LION"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/elephant.svg"
         alt="animal"
-        v-show="dict[index].animal === 'elephant'"
+        v-show="(dict[index] & WHICH_ANIMAL) === ELEPHANT"
         class="animal"
-        :class="{ [dict[index].color]: true }"
+        :class="{
+          red: dict[index] & WHOSE_TURN,
+          blue: !(dict[index] & WHOSE_TURN),
+        }"
       />
       <img
         src="../assets/grass.png"
