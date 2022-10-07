@@ -155,7 +155,7 @@ async function checkRank(index: number) {
       : bluePos.value.delete(clicked.value!);
     resetToStartOfMove();
     await playSound(dict.value[index] & WHICH_ANIMAL);
-    turn.value = turn.value ? false : true;
+    turn.value = !turn.value;
     emit("turn-changed", turn.value);
     singlePlayerMove();
     return true;
@@ -198,7 +198,7 @@ async function handleClickBox(index: number) {
 
     changePositions(index);
     await eatPiece(index);
-    turn.value = turn.value ? false : true;
+    turn.value = !turn.value;
     emit("turn-changed", turn.value);
     singlePlayerMove();
     return;

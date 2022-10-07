@@ -23,14 +23,14 @@ const ANIMAL_VALUE = {
 } as const;
 
 const RED_POSITION_VALUE = [
-  80, 150, 300, 10000, 300, 150, 80, 70, 100, 150, 300, 150, 100, 70, 60, 80,
+  80, 150, 300, 100000, 300, 150, 80, 70, 100, 150, 300, 150, 100, 70, 60, 80,
   100, 100, 100, 80, 60, 25, 30, 35, 40, 35, 30, 25, 20, 25, 30, 35, 30, 25, 20,
   15, 20, 25, 30, 25, 20, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10, 15, 20, 15, 10,
   5, 0, 5, 10, 15, 10, 5, 0,
 ] as const;
 
 const RED_MOUSE_POSITION_VALUE = [
-  80, 150, 300, 10000, 300, 150, 80, 70, 100, 150, 300, 150, 100, 70, 60, 80,
+  80, 150, 300, 100000, 300, 150, 80, 70, 100, 150, 300, 150, 100, 70, 60, 80,
   100, 100, 100, 80, 60, 25, 150, 150, 40, 150, 150, 25, 20, 150, 150, 35, 150,
   150, 20, 15, 150, 150, 30, 150, 150, 15, 10, 15, 20, 25, 20, 15, 10, 5, 10,
   15, 20, 15, 10, 5, 0, 5, 10, 15, 10, 5, 0,
@@ -40,19 +40,19 @@ const BLUE_MOUSE_POSITION_VALUE = [
   0, 5, 10, 15, 10, 5, 0, 5, 10, 15, 20, 15, 10, 5, 10, 15, 20, 25, 20, 15, 10,
   15, 150, 150, 30, 150, 150, 15, 20, 150, 150, 35, 150, 150, 20, 25, 150, 150,
   40, 150, 150, 25, 60, 80, 100, 100, 100, 80, 60, 70, 100, 150, 300, 150, 100,
-  70, 80, 150, 300, 10000, 300, 150, 80,
+  70, 80, 150, 300, 100000, 300, 150, 80,
 ] as const;
 
 const BLUE_POSITION_VALUE = [
   0, 5, 10, 15, 10, 5, 0, 5, 10, 15, 20, 15, 10, 5, 10, 15, 20, 25, 20, 15, 10,
   15, 20, 25, 30, 25, 20, 15, 20, 25, 30, 35, 30, 25, 20, 25, 30, 35, 40, 35,
   30, 25, 60, 80, 100, 100, 100, 80, 60, 70, 100, 150, 300, 150, 100, 70, 80,
-  150, 300, 10000, 300, 150, 80,
+  150, 300, 100000, 300, 150, 80,
 ] as const;
 
 const ORDER = [LION, TIGER, MOUSE, ELEPHANT, CHEETAH, WOLF, DOG, CAT] as const;
 
-const DEPTH = 5;
+const DEPTH = 6;
 
 export const TRAPS = [2, 4, 10, 52, 58, 60];
 export const RED_TRAPS = [52, 58, 60];
@@ -268,7 +268,10 @@ function minimax(
   let finalMove: [number, number];
 
   for (const move of allMoves) {
-    // let original = { ...board[move[1]] };
+    // 如果电脑下一步就能赢就马上返回
+    if (depth === DEPTH && move[1] === 59 && !turn) {
+      return [100000, move];
+    }
     let original = board[move[1]];
     let removed: number | null = null;
 
@@ -286,19 +289,11 @@ function minimax(
       )
     ) {
       canEat = false;
-      // original = { ...board[move[0]] };
       original = board[move[0]];
-      // board[move[0]] = {
-      //   color: board[move[0]].color,
-      //   piece: false,
-      //   animal: null,
-      // };
       board[move[0]] = 0;
       ownPos.delete(move[0]);
     } else {
-      // board[move[1]] = { ...board[move[0]] };
       board[move[1]] = board[move[0]];
-      // board[move[0]] = { ...board[move[0]], animal: null, piece: false };
       board[move[0]] = 0;
 
       ownPos.delete(move[0]);
@@ -329,13 +324,10 @@ function minimax(
     }
 
     if (!canEat) {
-      // board[move[0]] = { ...original };
       board[move[0]] = original;
       ownPos.add(move[0]);
     } else {
-      // board[move[0]] = { ...board[move[1]] };
       board[move[0]] = board[move[1]];
-      // board[move[1]] = { ...original };
       board[move[1]] = original;
 
       ownPos.delete(move[1]);
