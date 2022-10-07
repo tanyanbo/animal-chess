@@ -23,9 +23,10 @@ import {
   WHOSE_TURN,
 } from "../constants/values";
 
+// true: 轮到红，false: 轮到蓝
 const emit = defineEmits<{
-  (e: "turn-changed", turn: Color): void;
-  (e: "game-over", winner: Color): void;
+  (e: "turn-changed", turn: boolean): void;
+  (e: "game-over", winner: boolean): void;
 }>();
 
 const props = withDefaults(
@@ -42,7 +43,7 @@ const props = withDefaults(
 );
 
 const clicked = ref<number | null>(null);
-const turn = ref<Color>(1);
+const turn = ref<boolean>(true);
 const container = ref<HTMLDivElement>();
 const prevMove = ref<number | null>(null);
 const disabled = ref<boolean>(false);
@@ -59,7 +60,7 @@ onMounted(() => {
   }
 });
 
-emit("turn-changed", 1);
+emit("turn-changed", true);
 
 const highlight = ref<number[]>([]);
 
@@ -84,7 +85,7 @@ async function eatPiece(index: number) {
   }
   dict.value[index] = dict.value[clicked.value!];
   dict.value[clicked.value!] = 0;
-  turn.value === 0 ? redPos.value.delete(index) : bluePos.value.delete(index);
+  !turn.value ? redPos.value.delete(index) : bluePos.value.delete(index);
   resetToStartOfMove();
   if (hasEaten) {
     await playSound(dict.value[index] & WHICH_ANIMAL);
@@ -96,16 +97,16 @@ async function eatPiece(index: number) {
  * @param index 当前点击的格子的编号
  */
 function checkGameOver(index: number) {
-  if ((turn.value === 1 && index === 3) || (turn.value === 0 && index === 59)) {
+  if ((turn.value && index === 3) || (!turn.value && index === 59)) {
     eatPiece(index);
-    emit("game-over", index === 3 ? 1 : 0);
+    emit("game-over", index === 3 ? true : false);
     return true;
   }
   return false;
 }
 
 function changePositions(index: number) {
-  if (turn.value === 1) {
+  if (turn.value) {
     redPos.value.delete(clicked.value!);
     redPos.value.add(index);
   } else {
@@ -115,10 +116,10 @@ function changePositions(index: number) {
 }
 
 function singlePlayerMove() {
-  if (props.singlePlayer && turn.value === 0) {
+  if (props.singlePlayer && !turn.value) {
     setTimeout(() => {
       disabled.value = true;
-      const move = generateMove(dict.value, bluePos.value, redPos.value, 0);
+      const move = generateMove(dict.value, bluePos.value, redPos.value, false);
       disabled.value = false;
       aiMove(move[0], move[1]);
     }, 1);
@@ -138,8 +139,8 @@ function aiMove(startPos: number, endPos: number) {
 async function checkRank(index: number) {
   if (
     (!TRAPS.includes(index) ||
-      (RED_TRAPS.includes(index) && turn.value === 0) ||
-      (BLUE_TRAPS.includes(index) && turn.value === 1)) &&
+      (RED_TRAPS.includes(index) && !turn.value) ||
+      (BLUE_TRAPS.includes(index) && turn.value)) &&
     dict.value[index] &&
     (dict.value[clicked.value!] & WHICH_ANIMAL) <
       (dict.value[index] & WHICH_ANIMAL) &&
@@ -149,12 +150,12 @@ async function checkRank(index: number) {
     )
   ) {
     dict.value[clicked.value!] = 0;
-    turn.value === 1
+    turn.value
       ? redPos.value.delete(clicked.value!)
       : bluePos.value.delete(clicked.value!);
     resetToStartOfMove();
     await playSound(dict.value[index] & WHICH_ANIMAL);
-    turn.value = turn.value === 1 ? 0 : 1;
+    turn.value = turn.value ? false : true;
     emit("turn-changed", turn.value);
     singlePlayerMove();
     return true;
@@ -182,7 +183,7 @@ async function handleClickBox(index: number) {
   if (
     dict.value[index] &&
     !highlight.value.includes(index) &&
-    (dict.value[index] & WHOSE_TURN) !== turn.value
+    !!(dict.value[index] & WHOSE_TURN) !== turn.value
   ) {
     resetToStartOfMove(false);
     return;
@@ -199,7 +200,7 @@ async function handleClickBox(index: number) {
 
     changePositions(index);
     await eatPiece(index);
-    turn.value = turn.value === 1 ? 0 : 1;
+    turn.value = turn.value ? false : true;
     emit("turn-changed", turn.value);
     singlePlayerMove();
     return;

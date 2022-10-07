@@ -106,7 +106,7 @@ export const JUMP = {
 export function getPossibleMovesFromBox(
   index: number,
   dict: Board,
-  turn: Color
+  turn: boolean
 ) {
   let possibleMoves = [];
 
@@ -146,7 +146,7 @@ export function getPossibleMovesFromBox(
   }
 
   possibleMoves = possibleMoves.filter((box) => {
-    if ((box === 3 && turn === 0) || (box === 59 && turn === 1)) {
+    if ((box === 3 && !turn) || (box === 59 && turn)) {
       return false;
     }
 
@@ -157,14 +157,14 @@ export function getPossibleMovesFromBox(
       }
       return (
         !RIVER.includes(box) &&
-        (!dict[box] || (dict[box] & WHOSE_TURN) !== turn)
+        (!dict[box] || !!(dict[box] & WHOSE_TURN) !== turn)
       );
     }
 
     if ((dict[index] & WHICH_ANIMAL) !== MOUSE) {
       return (
         !RIVER.includes(box) &&
-        (!dict[box] || (dict[box] & WHOSE_TURN) !== turn)
+        (!dict[box] || !!(dict[box] & WHOSE_TURN) !== turn)
       );
     }
 
@@ -172,10 +172,10 @@ export function getPossibleMovesFromBox(
     if (RIVER.includes(index)) {
       return (
         (dict[index] & WHICH_ANIMAL) !== ELEPHANT &&
-        (!dict[box] || (dict[box] & WHOSE_TURN) !== turn)
+        (!dict[box] || !!(dict[box] & WHOSE_TURN) !== turn)
       );
     }
-    return !dict[box] || (dict[box] & WHOSE_TURN) !== turn;
+    return !dict[box] || !!(dict[box] & WHOSE_TURN) !== turn;
   });
 
   return possibleMoves;
@@ -184,7 +184,7 @@ export function getPossibleMovesFromBox(
 function generateAllPossibleMoves(
   board: Board,
   ownPos: Set<number>,
-  turn: Color
+  turn: boolean
 ) {
   const movesMap: Record<Animal, [number, number][]> = {
     [LION]: [],
@@ -216,7 +216,7 @@ function generateStaticScore(
   board: Board,
   ownPos: Set<number>,
   opponentPos: Set<number>,
-  turn: Color
+  turn: boolean
 ) {
   let ownScore = 0;
   let opponentScore = 0;
@@ -224,7 +224,7 @@ function generateStaticScore(
   ownPos.forEach((pos) => {
     ownScore +=
       ANIMAL_VALUE[(board[pos] & WHICH_ANIMAL) as Animal] +
-      (turn === 1
+      (turn
         ? (board[pos] & WHICH_ANIMAL) === MOUSE
           ? RED_MOUSE_POSITION_VALUE[pos]
           : RED_POSITION_VALUE[pos]
@@ -236,7 +236,7 @@ function generateStaticScore(
   opponentPos.forEach((pos) => {
     opponentScore +=
       ANIMAL_VALUE[(board[pos] & WHICH_ANIMAL) as Animal] +
-      (turn === 0
+      (!turn
         ? (board[pos] & WHICH_ANIMAL) === MOUSE
           ? RED_MOUSE_POSITION_VALUE[pos]
           : RED_POSITION_VALUE[pos]
@@ -245,14 +245,14 @@ function generateStaticScore(
         : BLUE_POSITION_VALUE[pos]);
   });
 
-  return turn === 1 ? opponentScore - ownScore : ownScore - opponentScore;
+  return turn ? opponentScore - ownScore : ownScore - opponentScore;
 }
 
 function minimax(
   board: Board,
   ownPos: Set<number>,
   opponentPos: Set<number>,
-  turn: Color,
+  turn: boolean,
   isMaximising: boolean,
   depth: number,
   alpha: number,
@@ -276,8 +276,8 @@ function minimax(
     // 检查是否自杀
     if (
       (!TRAPS.includes(move[1]) ||
-        (RED_TRAPS.includes(move[1]) && turn === 0) ||
-        (BLUE_TRAPS.includes(move[1]) && turn === 1)) &&
+        (RED_TRAPS.includes(move[1]) && !turn) ||
+        (BLUE_TRAPS.includes(move[1]) && turn)) &&
       board[move[1]] &&
       (board[move[0]] & WHICH_ANIMAL) < (board[move[1]] & WHICH_ANIMAL) &&
       !(
@@ -313,7 +313,7 @@ function minimax(
       board,
       opponentPos,
       ownPos,
-      turn === 1 ? 0 : 1,
+      turn ? false : true,
       !isMaximising,
       depth - 1,
       alpha,
@@ -362,7 +362,7 @@ export function generateMove(
   board: Board,
   ownPos: Set<number>,
   opponentPos: Set<number>,
-  turn: Color
+  turn: boolean
 ) {
   const [_, move] = minimax(
     board,
