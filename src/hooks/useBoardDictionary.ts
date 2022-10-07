@@ -1,5 +1,11 @@
-import { ref } from "vue";
+import { ref } from "vue"
 
+// 用二进制数字表示棋盘上的棋子
+// 0: 没有棋子
+// 100000001: 红老鼠
+// 110000000: 红大象
+// 000000001: 蓝老鼠
+// 010000000: 蓝大象
 export function useBoardDictionary() {
   const dict = ref<Uint16Array>(
     new Uint16Array([
@@ -7,7 +13,7 @@ export function useBoardDictionary() {
       0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 384, 0, 264, 0,
       272, 0, 257, 0, 258, 0, 0, 0, 260, 0, 288, 0, 0, 0, 0, 0, 320,
     ])
-  );
+  )
 
-  return { dict };
+  return { dict }
 }
