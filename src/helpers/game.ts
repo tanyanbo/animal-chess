@@ -152,7 +152,7 @@ export function getPossibleMovesFromBox(
 
     // 大象不能吃老鼠，所以需要特殊处理
     if ((dict[index] & WHICH_ANIMAL) === ELEPHANT) {
-      if ((dict[index] & WHICH_ANIMAL) === MOUSE) {
+      if ((dict[box] & WHICH_ANIMAL) === MOUSE) {
         return false;
       }
       return (

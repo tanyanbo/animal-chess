@@ -6,8 +6,8 @@ const winner = ref<"红" | "蓝" | null>(null);
 
 const chessBoardKey = ref<number>(0);
 
-function handleTurnChanged(t: Color) {
-  turn.value = t === 1 ? "红" : "蓝";
+function handleTurnChanged(t: boolean) {
+  turn.value = t ? "红" : "蓝";
 }
 
 function restart() {
@@ -45,7 +45,7 @@ function toggleSinglePlayer() {
     </div>
     <ChessBoard
       @turn-changed="handleTurnChanged"
-      @game-over="(w) => (winner = w === 1 ? '红' : '蓝')"
+      @game-over="(w) => (winner = w ? '红' : '蓝')"
       :key="chessBoardKey"
       :single-player="isSinglePlayer"
     />

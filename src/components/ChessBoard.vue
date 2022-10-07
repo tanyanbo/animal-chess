@@ -178,8 +178,6 @@ async function handleClickBox(index: number) {
   }
 
   // 点击了对手的一个吃不到的棋子
-  console.log(dict.value[index]);
-  console.log(!highlight.value.includes(index));
   if (
     dict.value[index] &&
     !highlight.value.includes(index) &&
