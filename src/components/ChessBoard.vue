@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
-import { useBoardDictionary } from "../hooks/useBoardDictionary";
+import { nextTick, onMounted, ref } from "vue"
+import { useBoardDictionary } from "../hooks/useBoardDictionary"
 import {
   TRAPS,
   RED_TRAPS,
@@ -8,8 +8,8 @@ import {
   RIVER,
   getPossibleMovesFromBox,
   generateMove,
-} from "../helpers/game";
-import { useSound } from "../hooks/useSound";
+} from "../helpers/game"
+import { useSound } from "../hooks/useSound"
 import {
   ELEPHANT,
   MOUSE,
@@ -21,50 +21,50 @@ import {
   LION,
   WHICH_ANIMAL,
   WHOSE_TURN,
-} from "../constants/values";
+} from "../constants/values"
 
 // true: 轮到红，false: 轮到蓝
 const emit = defineEmits<{
-  (e: "turn-changed", turn: boolean): void;
-  (e: "game-over", winner: boolean): void;
-}>();
+  (e: "turn-changed", turn: boolean): void
+  (e: "game-over", winner: boolean): void
+}>()
 
 const props = withDefaults(
   defineProps<{
-    singlePlayer?: boolean;
-    volume?: number;
-    shouldPlaySound?: boolean;
+    singlePlayer?: boolean
+    volume?: number
+    shouldPlaySound?: boolean
   }>(),
   {
     singlePlayer: false,
     volume: 0.2,
     shouldPlaySound: true,
   }
-);
+)
 
-const clicked = ref<number | null>(null);
-const turn = ref<boolean>(true);
-const container = ref<HTMLDivElement>();
-const prevMove = ref<number | null>(null);
-const disabled = ref<boolean>(false);
+const clicked = ref<number | null>(null)
+const turn = ref<boolean>(true)
+const container = ref<HTMLDivElement>()
+const prevMove = ref<number | null>(null)
+const disabled = ref<boolean>(false)
 
-const bluePos = ref<Set<number>>(new Set([0, 6, 8, 12, 14, 16, 18, 20]));
-const redPos = ref<Set<number>>(new Set([42, 44, 46, 48, 50, 54, 56, 62]));
+const bluePos = ref<Set<number>>(new Set([0, 6, 8, 12, 14, 16, 18, 20]))
+const redPos = ref<Set<number>>(new Set([42, 44, 46, 48, 50, 54, 56, 62]))
 
-const { playSound } = useSound(props.volume, props.shouldPlaySound);
+const { playSound } = useSound(props.volume, props.shouldPlaySound)
 
 onMounted(() => {
   if (container.value!.getBoundingClientRect().height < 100) {
     container.value!.style.height =
-      (container.value!.getBoundingClientRect().width / 7) * 9 + "px";
+      (container.value!.getBoundingClientRect().width / 7) * 9 + "px"
   }
-});
+})
 
-emit("turn-changed", true);
+emit("turn-changed", true)
 
-const highlight = ref<number[]>([]);
+const highlight = ref<number[]>([])
 
-const { dict } = useBoardDictionary();
+const { dict } = useBoardDictionary()
 
 /**
  * 重置回合状态
@@ -72,23 +72,23 @@ const { dict } = useBoardDictionary();
  */
 function resetToStartOfMove(resetPrevMove: boolean = true) {
   if (resetPrevMove) {
-    prevMove.value = clicked.value;
+    prevMove.value = clicked.value
   }
-  clicked.value = null;
-  highlight.value = [];
+  clicked.value = null
+  highlight.value = []
 }
 
 async function eatPiece(index: number) {
-  let hasEaten = false;
-  if (dict.value[index] & WHOSE_TURN) {
-    hasEaten = true;
+  let hasEaten = false
+  if (dict.value[index]) {
+    hasEaten = true
   }
-  dict.value[index] = dict.value[clicked.value!];
-  dict.value[clicked.value!] = 0;
-  !turn.value ? redPos.value.delete(index) : bluePos.value.delete(index);
-  resetToStartOfMove();
+  dict.value[index] = dict.value[clicked.value!]
+  dict.value[clicked.value!] = 0
+  !turn.value ? redPos.value.delete(index) : bluePos.value.delete(index)
+  resetToStartOfMove()
   if (hasEaten) {
-    await playSound(dict.value[index] & WHICH_ANIMAL);
+    await playSound(dict.value[index] & WHICH_ANIMAL)
   }
 }
 
@@ -98,38 +98,39 @@ async function eatPiece(index: number) {
  */
 function checkGameOver(index: number) {
   if ((turn.value && index === 3) || (!turn.value && index === 59)) {
-    eatPiece(index);
-    emit("game-over", index === 3 ? true : false);
-    return true;
+    eatPiece(index)
+    emit("game-over", index === 3 ? true : false)
+    return true
   }
-  return false;
+  return false
 }
 
 function changePositions(index: number) {
   if (turn.value) {
-    redPos.value.delete(clicked.value!);
-    redPos.value.add(index);
+    redPos.value.delete(clicked.value!)
+    redPos.value.add(index)
   } else {
-    bluePos.value.delete(clicked.value!);
-    bluePos.value.add(index);
+    bluePos.value.delete(clicked.value!)
+    bluePos.value.add(index)
   }
 }
 
 function singlePlayerMove() {
   if (props.singlePlayer && !turn.value) {
+    // 确保浏览器已经完成重绘和重排再计算下一步(要不然玩家走的棋不会反应在棋盘上)
     setTimeout(() => {
-      disabled.value = true;
-      const move = generateMove(dict.value, bluePos.value, redPos.value, false);
-      disabled.value = false;
-      aiMove(move[0], move[1]);
-    }, 1);
+      disabled.value = true
+      const move = generateMove(dict.value, bluePos.value, redPos.value, false)
+      disabled.value = false
+      aiMove(move[0], move[1])
+    }, 10)
   }
 }
 
 function aiMove(startPos: number, endPos: number) {
-  clicked.value = startPos;
-  highlight.value = [endPos];
-  handleClickBox(endPos);
+  clicked.value = startPos
+  highlight.value = [endPos]
+  handleClickBox(endPos)
 }
 
 /**
@@ -149,18 +150,18 @@ async function checkRank(index: number) {
       (dict.value[index] & WHICH_ANIMAL) === ELEPHANT
     )
   ) {
-    dict.value[clicked.value!] = 0;
+    dict.value[clicked.value!] = 0
     turn.value
       ? redPos.value.delete(clicked.value!)
-      : bluePos.value.delete(clicked.value!);
-    resetToStartOfMove();
-    await playSound(dict.value[index] & WHICH_ANIMAL);
-    turn.value = !turn.value;
-    emit("turn-changed", turn.value);
-    singlePlayerMove();
-    return true;
+      : bluePos.value.delete(clicked.value!)
+    resetToStartOfMove()
+    await playSound(dict.value[index] & WHICH_ANIMAL)
+    turn.value = !turn.value
+    emit("turn-changed", turn.value)
+    singlePlayerMove()
+    return true
   }
-  return false;
+  return false
 }
 
 /**
@@ -169,12 +170,12 @@ async function checkRank(index: number) {
  */
 async function handleClickBox(index: number) {
   if (disabled.value) {
-    return;
+    return
   }
   // 点击了一个没有棋子的格子
   if (!dict.value[index] && !highlight.value.includes(index)) {
-    resetToStartOfMove(false);
-    return;
+    resetToStartOfMove(false)
+    return
   }
 
   // 点击了对手的一个吃不到的棋子
@@ -183,29 +184,29 @@ async function handleClickBox(index: number) {
     !highlight.value.includes(index) &&
     !!(dict.value[index] & WHOSE_TURN) !== turn.value
   ) {
-    resetToStartOfMove(false);
-    return;
+    resetToStartOfMove(false)
+    return
   }
 
   if (clicked.value !== null && highlight.value.includes(index)) {
     if (checkGameOver(index)) {
-      return;
+      return
     }
 
     if (await checkRank(index)) {
-      return;
+      return
     }
 
-    changePositions(index);
-    await eatPiece(index);
-    turn.value = !turn.value;
-    emit("turn-changed", turn.value);
-    singlePlayerMove();
-    return;
+    changePositions(index)
+    await eatPiece(index)
+    turn.value = !turn.value
+    emit("turn-changed", turn.value)
+    singlePlayerMove()
+    return
   }
 
-  clicked.value = index;
-  highlight.value = getPossibleMovesFromBox(index, dict.value, turn.value);
+  clicked.value = index
+  highlight.value = getPossibleMovesFromBox(index, dict.value, turn.value)
 }
 </script>
 
