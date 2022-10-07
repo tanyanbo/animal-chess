@@ -118,12 +118,7 @@ function singlePlayerMove() {
   if (props.singlePlayer && turn.value === 0) {
     setTimeout(() => {
       disabled.value = true;
-      const move = generateMove(
-        dict.value,
-        bluePos.value,
-        redPos.value,
-        "blue"
-      );
+      const move = generateMove(dict.value, bluePos.value, redPos.value, 0);
       disabled.value = false;
       aiMove(move[0], move[1]);
     }, 1);
@@ -182,6 +177,8 @@ async function handleClickBox(index: number) {
   }
 
   // 点击了对手的一个吃不到的棋子
+  console.log(dict.value[index]);
+  console.log(!highlight.value.includes(index));
   if (
     dict.value[index] &&
     !highlight.value.includes(index) &&

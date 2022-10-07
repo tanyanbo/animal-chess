@@ -1,20 +1,5 @@
 type Color = 0 | 1;
 
-type Animal =
-  | "mouse"
-  | "cat"
-  | "dog"
-  | "wolf"
-  | "cheetah"
-  | "tiger"
-  | "lion"
-  | "elephant";
+type Animal = 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128;
 
-type Board = Record<
-  string,
-  {
-    piece: boolean;
-    color: Color;
-    animal: Animal | null;
-  }
->;
+type Board = Uint16Array;

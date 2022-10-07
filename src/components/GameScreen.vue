@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import { ref } from "vue"
-import ChessBoard from "./ChessBoard.vue"
-const turn = ref<"红" | "蓝">()
-const winner = ref<"红" | "蓝" | null>(null)
+import { ref } from "vue";
+import ChessBoard from "./ChessBoard.vue";
+const turn = ref<"红" | "蓝">();
+const winner = ref<"红" | "蓝" | null>(null);
 
-const chessBoardKey = ref<number>(0)
+const chessBoardKey = ref<number>(0);
 
 function handleTurnChanged(t: Color) {
-  turn.value = t === "red" ? "红" : "蓝"
+  turn.value = t === 1 ? "红" : "蓝";
 }
 
 function restart() {
-  chessBoardKey.value += 1
-  winner.value = null
+  chessBoardKey.value += 1;
+  winner.value = null;
 }
 
-const isSinglePlayer = ref(true)
+const isSinglePlayer = ref(true);
 
 function toggleSinglePlayer() {
-  isSinglePlayer.value = !isSinglePlayer.value
-  restart()
+  isSinglePlayer.value = !isSinglePlayer.value;
+  restart();
 }
 </script>
 
@@ -45,7 +45,7 @@ function toggleSinglePlayer() {
     </div>
     <ChessBoard
       @turn-changed="handleTurnChanged"
-      @game-over="(w) => (winner = w === 'red' ? '红' : '蓝')"
+      @game-over="(w) => (winner = w === 1 ? '红' : '蓝')"
       :key="chessBoardKey"
       :single-player="isSinglePlayer"
     />
